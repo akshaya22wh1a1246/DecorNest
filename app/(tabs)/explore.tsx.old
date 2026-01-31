@@ -1,0 +1,706 @@
+import React, { useState, useMemo } from 'react';
+import { StyleSheet, View, TextInput, FlatList, TouchableOpacity, ViewStyle, TextStyle, ImageStyle } from 'react-native';
+import { Image } from 'expo-image';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { ThemedView } from '@/components/themed-view';
+import { ThemedText } from '@/components/themed-text';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+
+// Types
+export interface Product {
+  id: string;
+  title: string;
+  price: number;
+  image: string;
+  description?: string;
+  category: string;
+  rating: number;
+  vendor: {
+    id: string;
+    name: string;
+    rating: number;
+  };
+}
+
+interface Style {
+  container: ViewStyle;
+  header: ViewStyle;
+  headerTitle: TextStyle;
+  searchContainer: ViewStyle;
+  searchIcon: ViewStyle;
+  searchInput: TextStyle;
+  productsGrid: ViewStyle;
+  productCard: ViewStyle;
+  productImage: ImageStyle;
+  productInfo: ViewStyle;
+  productTitle: TextStyle;
+  productPrice: TextStyle;
+  vendorInfo: ViewStyle;
+  vendorName: TextStyle;
+  rating: TextStyle;
+  headerImage: ViewStyle;
+  titleContainer: ViewStyle;
+}
+
+// Mock data - replace with Firebase fetch
+const MOCK_PRODUCTS: Product[] = [
+  {
+    id: '1',
+    title: 'Rustic Wedding Setup',
+    price: 1499.99,
+    image: 'https://images.unsplash.com/photo-1519741497674-611481863552',
+    description: 'Beautiful rustic-themed wedding decoration package',
+    category: 'Wedding',
+    rating: 4.8,
+    vendor: {
+      id: 'v1',
+      name: 'Elite Events',
+      rating: 4.8,
+    },
+  },
+  {
+    id: '2',
+    title: 'Garden Party Décor',
+    price: 899.99,
+    image: 'https://images.unsplash.com/photo-1464366400160-69de5c4a4859',
+    category: 'Party',
+    rating: 4.6,
+    vendor: {
+      id: 'v2',
+      name: 'Garden Dreams',
+      rating: 4.7,
+    },
+  },
+  {
+    id: '3',
+    title: 'Corporate Event Package',
+    price: 2499.99,
+    image: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678',
+    category: 'Corporate',
+    rating: 4.9,
+    vendor: {
+      id: 'v3',
+      name: 'Pro Events',
+      rating: 4.9,
+    },
+  },
+];
+
+const styles = StyleSheet.create<Style>({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  header: {
+    marginBottom: 16,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 16,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#333',
+  },
+  productsGrid: {
+    paddingVertical: 8,
+  },
+  productCard: {
+    flex: 1,
+    margin: 8,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    overflow: 'hidden',
+  },
+  productImage: {
+    width: '100%',
+    height: 160,
+  },
+  productInfo: {
+    padding: 12,
+  },
+  productTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  productPrice: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
+  },
+  vendorInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  vendorName: {
+    fontSize: 12,
+    color: '#666',
+  },
+  rating: {
+    fontSize: 12,
+    color: '#666',
+  },
+  headerImage: {
+    color: '#808080',
+    bottom: -90,
+    left: -35,
+    position: 'absolute',
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+});
+
+export default function ExploreScreen() {
+  const router = useRouter();
+  const params = useLocalSearchParams();
+  const category = typeof params.category === 'string' ? params.category : undefined;
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredProducts = useMemo(() => {
+    return MOCK_PRODUCTS.filter(product => {
+      const matchesSearch = searchQuery === '' || 
+        product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.vendor.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = !category || product.category.toLowerCase() === category.toLowerCase();
+      return matchesSearch && matchesCategory;
+    });
+  }, [searchQuery, category]);
+
+  const renderProductCard = ({ item }: { item: Product }) => (
+    <TouchableOpacity 
+      style={styles.productCard} 
+      onPress={() => {
+        router.push({
+          pathname: '/modal',
+          params: { productId: item.id }
+        });
+      }}>
+      <Image
+        source={{ uri: item.image }}
+        style={styles.productImage}
+        contentFit="cover"
+        transition={200}
+      />
+      <View style={styles.productInfo}>
+        <ThemedText style={styles.productTitle}>{item.title}</ThemedText>
+        <ThemedText style={styles.productPrice}>${item.price}</ThemedText>
+        <View style={styles.vendorInfo}>
+          <ThemedText style={styles.vendorName}>{item.vendor.name}</ThemedText>
+          <ThemedText style={styles.rating}>⭐ {item.rating}</ThemedText>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
+  return (
+    <ThemedView style={styles.container}>
+      <View style={styles.header}>
+        {category ? (
+          <ThemedText style={styles.headerTitle}>
+            {category.charAt(0).toUpperCase() + category.slice(1)} Decorations
+          </ThemedText>
+        ) : (
+          <ThemedText style={styles.headerTitle}>
+            All Decorations
+          </ThemedText>
+        )}
+
+        <View style={styles.searchContainer}>
+          <IconSymbol name="magnifyingglass" size={20} color="#666" style={styles.searchIcon} />
+          <TextInput
+            placeholder="Search décor items..."
+            placeholderTextColor="#666"
+            style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+      </View>
+
+      <FlatList
+        data={filteredProducts}
+        renderItem={renderProductCard}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        contentContainerStyle={styles.productsGrid}
+      />
+    </ThemedView>
+  );
+}
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  header: {
+    marginBottom: 16,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 16,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#333',
+  },
+  productsGrid: {
+    paddingVertical: 8,
+  },
+  productCard: {
+    flex: 1,
+    margin: 8,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    overflow: 'hidden',
+  },
+  productImage: {
+    width: '100%',
+    height: 160,
+  },
+  productInfo: {
+    padding: 12,
+  },
+  productTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  productPrice: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
+  },
+  vendorInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  vendorName: {
+    fontSize: 12,
+    color: '#666',
+  },
+  rating: {
+    fontSize: 12,
+    color: '#666',
+  },
+});
+
+// Types
+export interface Product {
+  id: string;
+  title: string;
+  price: number;
+  image: string;
+  description?: string;
+  category: string;
+  rating: number;
+  vendor: {
+    id: string;
+    name: string;
+    rating: number;
+  };
+}
+
+// Mock data - replace with Firebase fetch
+const MOCK_PRODUCTS: Product[] = [
+  {
+    id: '1',
+    title: 'Rustic Wedding Setup',
+    price: 1499.99,
+    image: 'https://images.unsplash.com/photo-1519741497674-611481863552',
+    description: 'Beautiful rustic-themed wedding decoration package',
+    category: 'Wedding',
+    rating: 4.8,
+    vendor: {
+      id: 'v1',
+      name: 'Elite Events',
+      rating: 4.8,
+    },
+  },
+  {
+    id: '2',
+    title: 'Garden Party Décor',
+    price: 899.99,
+    image: 'https://images.unsplash.com/photo-1464366400160-69de5c4a4859',
+    category: 'Party',
+    rating: 4.6,
+    vendor: {
+      id: 'v2',
+      name: 'Garden Dreams',
+      rating: 4.7,
+    },
+  },
+  {
+    id: '3',
+    title: 'Corporate Event Package',
+    price: 2499.99,
+    image: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678',
+    category: 'Corporate',
+    rating: 4.9,
+    vendor: {
+      id: 'v3',
+      name: 'Pro Events',
+      rating: 4.9,
+    },
+  },
+];
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  header: {
+    marginBottom: 16,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 16,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#333',
+  },
+  productsGrid: {
+    paddingVertical: 8,
+  },
+  productCard: {
+    flex: 1,
+    margin: 8,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    overflow: 'hidden',
+  },
+  productImage: {
+    width: '100%',
+    height: 160,
+  },
+  productInfo: {
+    padding: 12,
+  },
+  productTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  productPrice: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
+  },
+  vendorInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  vendorName: {
+    fontSize: 12,
+    color: '#666',
+  },
+  rating: {
+    fontSize: 12,
+    color: '#666',
+  },
+  headerImage: {
+    color: '#808080',
+    bottom: -90,
+    left: -35,
+    position: 'absolute',
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+});
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  header: {
+    marginBottom: 16,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 16,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#333',
+  },
+  productsGrid: {
+    paddingVertical: 8,
+  },
+  productCard: {
+    flex: 1,
+    margin: 8,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    overflow: 'hidden',
+  },
+  productImage: {
+    width: '100%',
+    height: 160,
+  },
+  productInfo: {
+    padding: 12,
+  },
+  productTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  productPrice: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
+  },
+  vendorInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  vendorName: {
+    fontSize: 12,
+    color: '#666',
+  },
+  rating: {
+    fontSize: 12,
+    color: '#666',
+  },
+  headerImage: {
+    color: '#808080',
+    bottom: -90,
+    left: -35,
+    position: 'absolute',
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+});
+
+// Mock data - replace with Firebase fetch
+const MOCK_PRODUCTS = [
+  {
+    id: '1',
+    title: 'Rustic Wedding Setup',
+    price: 1499.99,
+    image: 'https://images.unsplash.com/photo-1519741497674-611481863552',
+    description: 'Beautiful rustic-themed wedding decoration package',
+    category: 'Wedding',
+    rating: 4.8,
+    vendor: {
+      id: 'v1',
+      name: 'Elite Events',
+      rating: 4.8,
+    },
+  },
+  {
+    id: '2',
+    title: 'Garden Party Décor',
+    price: 899.99,
+    image: 'https://images.unsplash.com/photo-1464366400160-69de5c4a4859',
+    category: 'Party',
+    rating: 4.6,
+    vendor: {
+      id: 'v2',
+      name: 'Garden Dreams',
+      rating: 4.7,
+    },
+  },
+  {
+    id: '3',
+    title: 'Corporate Event Package',
+    price: 2499.99,
+    image: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678',
+    category: 'Corporate',
+    rating: 4.9,
+    vendor: {
+      id: 'v3',
+      name: 'Pro Events',
+      rating: 4.9,
+    },
+  },
+];
+
+export interface Product {
+  id: string;
+  title: string;
+  price: number;
+  image: string;
+  description?: string;
+  category: string;
+  rating: number;
+  vendor: {
+    id: string;
+    name: string;
+    rating: number;
+  };
+}
+
+export default function ExploreScreen() {
+  const router = useRouter();
+  const params = useLocalSearchParams();
+  const category = typeof params.category === 'string' ? params.category : undefined;
+  const [searchQuery, setSearchQuery] = React.useState('');
+
+  const renderProductCard = ({ item }: { item: Product }) => (
+    <TouchableOpacity 
+      style={styles.productCard} 
+      onPress={() => {
+        router.push({
+          pathname: '/modal',
+          params: { productId: item.id }
+        });
+      }}>
+      <Image
+        source={{ uri: item.image }}
+        style={styles.productImage}
+        contentFit="cover"
+        transition={200}
+      />
+      <View style={styles.productInfo}>
+        <ThemedText style={styles.productTitle}>{item.title}</ThemedText>
+        <ThemedText style={styles.productPrice}>${item.price}</ThemedText>
+        <View style={styles.vendorInfo}>
+          <ThemedText style={styles.vendorName}>{item.vendor.name}</ThemedText>
+          <ThemedText style={styles.rating}>⭐ {item.rating}</ThemedText>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
+  const filteredProducts = React.useMemo(() => {
+    return MOCK_PRODUCTS.filter(product => {
+      const matchesSearch = searchQuery === '' || 
+        product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.vendor.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = !category || product.category.toLowerCase() === category.toLowerCase();
+      return matchesSearch && matchesCategory;
+    });
+  }, [searchQuery, category]);
+
+  return (
+    <ThemedView style={styles.container}>
+      <View style={styles.header}>
+        {category ? (
+          <ThemedText style={styles.headerTitle}>
+            {category.charAt(0).toUpperCase() + category.slice(1)} Decorations
+          </ThemedText>
+        ) : (
+          <ThemedText style={styles.headerTitle}>
+            All Decorations
+          </ThemedText>
+        )}
+
+        <View style={styles.searchContainer}>
+          <IconSymbol name="magnifyingglass" size={20} color="#666" style={styles.searchIcon} />
+          <TextInput
+            placeholder="Search décor items..."
+            placeholderTextColor="#666"
+            style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+      </View>
+
+      <FlatList
+        data={filteredProducts}
+        renderItem={renderProductCard}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        contentContainerStyle={styles.productsGrid}
+      />
+    </ThemedView>
+  );
+
+const styles = StyleSheet.create({
+  headerImage: {
+    color: '#808080',
+    bottom: -90,
+    left: -35,
+    position: 'absolute',
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+});
