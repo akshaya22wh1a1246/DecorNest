@@ -1,7 +1,7 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { MOCK_PRODUCTS } from '@/constants/mock-data';
+import { DECOR_PRODUCTS } from '@/constants/products';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -20,7 +20,7 @@ export default function BookingScreen() {
     notes: '',
   });
 
-  const product = MOCK_PRODUCTS.find(p => p.id === params.productId);
+  const product = DECOR_PRODUCTS.find(p => p.id === params.productId);
   
   if (!product) {
     return (
@@ -53,7 +53,7 @@ export default function BookingScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ScrollView>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
           <ThemedText style={styles.title}>Book Your Event</ThemedText>
           
@@ -148,6 +148,7 @@ export default function BookingScreen() {
           <TouchableOpacity 
             style={styles.submitButton}
             onPress={handleSubmit}
+            activeOpacity={0.8}
           >
             <ThemedText style={styles.submitButtonText}>Confirm Booking</ThemedText>
           </TouchableOpacity>
@@ -161,29 +162,33 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  scrollContent: {
+    paddingBottom: 24,
+  },
   content: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 24,
+    fontSize: 22,
+    fontWeight: '700',
+    marginBottom: 20,
   },
   productSummary: {
-    backgroundColor: '#f8f8f8',
+    backgroundColor: '#F5F3FF',
     padding: 16,
-    borderRadius: 8,
-    marginBottom: 24,
+    borderRadius: 16,
+    marginBottom: 20,
   },
   productTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   price: {
-    fontSize: 20,
-    color: '#2ecc71',
-    fontWeight: '600',
+    fontSize: 18,
+    color: '#10B981',
+    fontWeight: '700',
   },
   formSection: {
     marginBottom: 24,
@@ -192,37 +197,44 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   label: {
-    fontSize: 16,
-    marginBottom: 8,
-    color: '#444',
+    fontSize: 14,
+    marginBottom: 6,
+    color: '#4B5563',
   },
   input: {
-    backgroundColor: '#f0f0f0',
-    padding: 12,
-    borderRadius: 8,
-    fontSize: 16,
+    backgroundColor: '#F9FAFB',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+    fontSize: 14,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
   textArea: {
-    height: 100,
+    height: 110,
     paddingTop: 12,
   },
   dateButton: {
-    backgroundColor: '#f0f0f0',
-    padding: 12,
-    borderRadius: 8,
+    backgroundColor: '#F9FAFB',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
   submitButton: {
-    backgroundColor: '#2ecc71',
-    padding: 16,
-    borderRadius: 8,
+    backgroundColor: '#8B5CF6',
+    paddingVertical: 14,
+    borderRadius: 999,
     alignItems: 'center',
+    marginTop: 8,
   },
   submitButtonText: {
     color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });

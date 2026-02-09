@@ -1,4 +1,5 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { DECOR_PRODUCTS } from '@/constants/products';
 import { useApp } from '@/context/app-context';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -29,105 +30,8 @@ const CATEGORIES = [
   { id: '8', name: 'Romantic', emoji: '💕' },
 ];
 
-// Mock Products - Extended with categories
-const DECOR_PRODUCTS = [
-  {
-    id: '1',
-    title: 'Elegant Rose Gold Wedding Arch',
-    price: 8999,
-    originalPrice: 12999,
-    rating: 4.8,
-    reviews: 234,
-    organizer: 'Elite Events Co.',
-    image: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=400',
-    discount: 31,
-    category: 'Wedding',
-  },
-  {
-    id: '2',
-    title: 'Pastel Balloon Birthday Setup',
-    price: 2499,
-    originalPrice: 3999,
-    rating: 4.9,
-    reviews: 456,
-    organizer: 'Party Perfect',
-    image: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=400',
-    discount: 38,
-    category: 'Birthday',
-  },
-  {
-    id: '3',
-    title: 'Floral Baby Shower Decor',
-    price: 4999,
-    originalPrice: 7999,
-    rating: 4.7,
-    reviews: 189,
-    organizer: 'Sweet Celebrations',
-    image: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=400',
-    discount: 38,
-    category: 'Baby Shower',
-  },
-  {
-    id: '4',
-    title: 'Luxury Corporate Event Setup',
-    price: 15999,
-    originalPrice: 22999,
-    rating: 4.9,
-    reviews: 312,
-    organizer: 'Business Events Pro.',
-    image: 'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=400',
-    discount: 30,
-    category: 'Corporate',
-  },
-  {
-    id: '5',
-    title: 'Traditional Festive Decoration',
-    price: 6999,
-    originalPrice: 9999,
-    rating: 4.8,
-    reviews: 278,
-    organizer: 'Festive Touch',
-    image: 'https://images.unsplash.com/photo-1482517967863-00e15c9b44be?w=400',
-    discount: 30,
-    category: 'Festive',
-  },
-  {
-    id: '6',
-    title: 'Romantic Candlelight Setup',
-    price: 3499,
-    originalPrice: 5999,
-    rating: 4.9,
-    reviews: 402,
-    organizer: 'Romantic Moments',
-    image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400',
-    discount: 42,
-    category: 'Romantic',
-  },
-  {
-    id: '7',
-    title: 'Diamond Engagement Decor',
-    price: 12999,
-    originalPrice: 18999,
-    rating: 4.9,
-    reviews: 298,
-    organizer: 'Elite Events Co.',
-    image: 'https://images.unsplash.com/photo-1464366400160-69de5c4a4859?w=400',
-    discount: 32,
-    category: 'Engagement',
-  },
-  {
-    id: '8',
-    title: 'Garden Outdoor Party Setup',
-    price: 7999,
-    originalPrice: 11999,
-    rating: 4.7,
-    reviews: 167,
-    organizer: 'Outdoor Dreams',
-    image: 'https://images.unsplash.com/photo-1464366400160-69de5c4a4859?w=400',
-    discount: 33,
-    category: 'Outdoor',
-  },
-];
+// Use centralized DECOR_PRODUCTS from constants for consistency across app
+const HOME_PRODUCTS = DECOR_PRODUCTS;
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -141,7 +45,7 @@ export default function HomeScreen() {
   const cartCount = cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
 
   // Filter and sort products
-  const filteredProducts = DECOR_PRODUCTS
+  const filteredProducts = HOME_PRODUCTS
     .filter(product => {
       // Search filter
       const matchesSearch = searchQuery === '' || 
@@ -194,10 +98,10 @@ export default function HomeScreen() {
     </TouchableOpacity>
   );
 
-  const renderProduct = ({ item, index }: { item: typeof DECOR_PRODUCTS[0], index: number }) => (
+  const renderProduct = ({ item, index }: { item: typeof HOME_PRODUCTS[0], index: number }) => (
     <TouchableOpacity 
       style={[styles.productCard, { marginRight: index % 2 === 0 ? 8 : 0 }]}
-      onPress={() => router.push('/product-details')}
+      onPress={() => router.push({ pathname: '/product-details', params: { productId: item.id } })}
       activeOpacity={0.9}>
       <View style={styles.productImageContainer}>
         <Image

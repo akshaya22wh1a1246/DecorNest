@@ -120,6 +120,9 @@ export default function ProfileScreen() {
           </LinearGradient>
           <ThemedText style={styles.userName}>{user?.name}</ThemedText>
           <ThemedText style={styles.userEmail}>{user?.email}</ThemedText>
+          {user?.role === 'vendor' && (
+            <ThemedText style={styles.userRoleBadge}>Vendor Account</ThemedText>
+          )}
           
           {/* Quick Stats */}
           <View style={styles.statsContainer}>
@@ -176,6 +179,30 @@ export default function ProfileScreen() {
               <IconSymbol name="chevron.right" size={20} color="#999" />
             </TouchableOpacity>
           </View>
+
+          {/* Vendor tools (only for vendor role) */}
+          {user?.role === 'vendor' && (
+            <View style={styles.section}>
+              <ThemedText style={styles.sectionTitle}>Vendor Tools</ThemedText>
+
+              <TouchableOpacity
+                style={styles.menuCard}
+                activeOpacity={0.7}
+                onPress={() => router.push('/vendor-dashboard')}
+              >
+                <View style={[styles.iconCircle, { backgroundColor: '#DBEAFE' }]}>
+                  <IconSymbol name="chart.bar.fill" size={24} color="#2563EB" />
+                </View>
+                <View style={styles.menuContent}>
+                  <ThemedText style={styles.menuTitle}>Vendor Dashboard</ThemedText>
+                  <ThemedText style={styles.menuSubtitle}>
+                    Track bookings and manage your décor packages
+                  </ThemedText>
+                </View>
+                <IconSymbol name="chevron.right" size={20} color="#999" />
+              </TouchableOpacity>
+            </View>
+          )}
 
           {/* Orders & Bookings */}
           <View style={styles.section}>

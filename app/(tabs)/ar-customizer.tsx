@@ -5,7 +5,8 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 // @ts-ignore - expo-image-picker types
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -39,6 +40,7 @@ interface DesignElement {
 }
 
 export default function ARCustomizerScreen() {
+  const params = useLocalSearchParams();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [arView, setArView] = useState(false);
   const [selectedColor, setSelectedColor] = useState<ColorOption | null>(null);
@@ -46,12 +48,23 @@ export default function ARCustomizerScreen() {
   const [selectedElement, setDesignElement] = useState<DesignElement | null>(null);
   const [uploading, setUploading] = useState(false);
 
-  // Sample decoration images
+  // Allow deep-linking from a specific theme/product
+  useEffect(() => {
+    const imageFromRoute = params.image as string | undefined;
+    if (imageFromRoute) {
+      setSelectedImage(imageFromRoute);
+      setSelectedColor(colorOptions[0]);
+      setSelectedMaterial(materialOptions[0]);
+      setDesignElement(designElements[0]);
+    }
+  }, [params.image]);
+
+  // Sample decoration images - real event setups on venue/stage
   const sampleImages = [
-    'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=800',
-    'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800',
-    'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=800',
-    'https://images.unsplash.com/photo-1464366400160-69de5c4a4859?w=800',
+    // Use only URLs that are already confirmed visible on your device
+    'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=800', // wedding table setup
+    'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800', // colorful birthday balloons
+    'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=800', // baby/kids celebration area
   ];
 
   // Color customization options

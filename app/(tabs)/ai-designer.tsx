@@ -47,6 +47,8 @@ export default function AIDesignerScreen() {
   const [imageLoading, setImageLoading] = useState(false);
   const [fullScreenImage, setFullScreenImage] = useState(false); // Full screen modal state
 
+  const FALLBACK_DECOR_IMAGE = 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=1200';
+
   const eventTypes = [
     { id: 'wedding', name: 'Wedding', emoji: '💒', color: '#FFD6E0' },
     { id: 'birthday', name: 'Birthday', emoji: '🎂', color: '#FEF3C7' },
@@ -65,6 +67,38 @@ export default function AIDesignerScreen() {
     { id: 'rustic', name: 'Rustic', icon: 'leaf.fill' },
   ];
 
+  // Curated stage-decoration reference images per event type.
+  // This keeps designs always relevant (decorated stages/venues) and works offline without external AI.
+  // Use only the URLs we have already seen working on your device, to
+  // avoid any blank images. Different event types still share the same
+  // small set of reliable stage/party photos.
+  const STAGE_REFERENCE_IMAGES: Record<string, string[]> = {
+    wedding: [
+      'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=1600',
+      'https://images.unsplash.com/photo-1519741497674-611481863552?w=1600',
+    ],
+    birthday: [
+      'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=1600',
+      'https://images.unsplash.com/photo-1513151233558-d860c5398176?w=1600',
+    ],
+    'baby-shower': [
+      'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=1600',
+      'https://images.unsplash.com/photo-1513151233558-d860c5398176?w=1600',
+    ],
+    corporate: [
+      'https://images.unsplash.com/photo-1511578314322-379afb476865?w=1600',
+      'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1600',
+    ],
+    anniversary: [
+      'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1600',
+      'https://images.unsplash.com/photo-1520854224011-12395c2a3a23?w=1600',
+    ],
+    festive: [
+      'https://images.unsplash.com/photo-1515595967223-f9fa59af5a3b?w=1600',
+      'https://images.unsplash.com/photo-1500534314211-0a24cd03f2c0?w=1600',
+    ],
+  };
+
   const handleGenerate = async () => {
     if (!selectedEventType || !options.colorScheme) {
       const message = 'Please select an event type and enter a color scheme';
@@ -77,61 +111,28 @@ export default function AIDesignerScreen() {
     }
 
     setIsGenerating(true);
+    setImageLoading(true);
     
     try {
-      // Build comprehensive AI prompt from ALL user inputs
+      // Build description-style "AI" prompt from user inputs
       const prompt = buildPrompt();
-      setGeneratedPrompt(prompt);
-      
-      console.log('Generated AI Prompt:', prompt); // Debug log
-      
-      // Use Pollinations.ai - free AI image generation API
-      // HD quality: 1920x1440 (4K resolution for crystal clear images)
-      // Add random variation for different results on regenerate
-      const timestamp = Date.now();
-      const randomSeed = Math.floor(Math.random() * 10000000); // Larger range for more variation
-      
-      // Add random variation keywords to ensure different outputs
-      const variations = [
-        'unique perspective',
-        'different angle',
-        'alternative arrangement',
-        'fresh design approach',
-        'new creative vision',
-        'innovative layout',
-        'distinctive setup',
-        'original composition'
-      ];
-      const randomVariation = variations[Math.floor(Math.random() * variations.length)];
-      const enhancedPrompt = `${prompt}, ${randomVariation}`;
-      
-      const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1920&height=1440&nologo=true&enhance=true&model=flux&seed=${timestamp}-${randomSeed}&nofeed=true`;
-      
-      console.log('HD Image URL:', imageUrl); // Debug log
-      console.log('Random Seed:', randomSeed); // Debug log
-      console.log('Variation:', randomVariation); // Debug log
-      console.log('Setting generated image...'); // Debug log
-      
-      // Set image immediately
-      setGeneratedImage(imageUrl);
+      setGeneratedPrompt(prompt + ' (curated stage layout suggestion)');
+
+      // Pick a curated stage image for the chosen event type so output is
+      // always a proper stage/venue decoration.
+      const eventKey = selectedEventType || 'wedding';
+      const poolForEvent = STAGE_REFERENCE_IMAGES[eventKey];
+      const fallbackPool = Object.values(STAGE_REFERENCE_IMAGES).flat();
+      const pool = (poolForEvent && poolForEvent.length > 0) ? poolForEvent : fallbackPool;
+      const chosenImage = pool[Math.floor(Math.random() * pool.length)] || FALLBACK_DECOR_IMAGE;
+
+      setGeneratedImage(chosenImage);
       setImageKey(prev => prev + 1); // Force image reload
-      
-      // Wait for image generation
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      setIsGenerating(false);
-      
-      console.log('Image should be visible now'); // Debug log
-      
-      const successMessage = 'AI decoration design generated based on your inputs!';
-      if (Platform.OS === 'web') {
-        window.alert(successMessage);
-      } else {
-        Alert.alert('Success', successMessage);
-      }
+      console.log('Stage reference image set for AI design');
     } catch (error) {
       setIsGenerating(false);
-      const errorMessage = 'Failed to generate design. Please try again.';
+      setImageLoading(false);
+      const errorMessage = 'Could not prepare the design preview. Please try again.';
       if (Platform.OS === 'web') {
         window.alert(errorMessage);
       } else {
@@ -256,7 +257,10 @@ export default function AIDesignerScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* Header */}
         <LinearGradient
           colors={['#E6E0FF', '#FFD6E0']}
@@ -470,11 +474,26 @@ export default function AIDesignerScreen() {
                   source={{ uri: generatedImage }}
                   style={styles.previewImage}
                   resizeMode="cover"
-                  onLoadStart={() => setImageLoading(true)}
-                  onLoad={() => setImageLoading(false)}
+                    onLoadStart={() => setImageLoading(true)}
+                    onLoad={() => {
+                      setImageLoading(false);
+                      setIsGenerating(false);
+                    }}
                   onError={(error) => {
                     console.error('Image load error:', error);
-                    setImageLoading(false);
+                      setImageLoading(false);
+                      setIsGenerating(false);
+
+                      const message = 'The AI image could not be loaded. Showing a sample décor design instead.';
+                      if (Platform.OS === 'web') {
+                        window.alert(message);
+                      } else {
+                        Alert.alert('Image Load Issue', message);
+                      }
+
+                      // Fallback to a reliable sample décor image so the user still sees a design
+                      setGeneratedImage(FALLBACK_DECOR_IMAGE);
+                      setImageKey(prev => prev + 1);
                   }}
                 />
                 <View style={styles.tapToViewOverlay}>
@@ -513,6 +532,19 @@ export default function AIDesignerScreen() {
                       <IconSymbol name="arrow.clockwise" size={18} color="#8B5CF6" />
                       <ThemedText style={styles.previewActionBtnOutlineText}>
                         Regenerate
+                      </ThemedText>
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.previewActionBtn}
+                    onPress={() => router.push({ pathname: '/(tabs)/ar-customizer', params: { image: generatedImage } })}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.previewActionBtnOutline}>
+                      <IconSymbol name="cube.transparent" size={18} color="#8B5CF6" />
+                      <ThemedText style={styles.previewActionBtnOutlineText}>
+                        View in AR
                       </ThemedText>
                     </View>
                   </TouchableOpacity>
@@ -571,6 +603,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
+  },
+  scrollContent: {
+    paddingBottom: 32,
   },
   header: {
     paddingTop: 60,

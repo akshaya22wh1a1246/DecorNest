@@ -74,7 +74,7 @@ export default function CartScreen() {
           <View key={product.id} style={styles.cartItem}>
             <TouchableOpacity
               style={styles.productContent}
-              onPress={() => router.push('/product-details')}
+              onPress={() => router.push({ pathname: '/product-details', params: { productId: product.id } })}
               activeOpacity={0.7}
             >
               <Image

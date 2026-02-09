@@ -1,3 +1,4 @@
+import ModelViewerWebView from '@/components/ModelViewerWebView';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -19,6 +20,7 @@ export default function ProductDetailsScreen() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [show3DPreview, setShow3DPreview] = useState(false);
 
   // Get product by ID from params, default to first product
   const productId = params.productId as string || '1';
@@ -60,6 +62,16 @@ export default function ProductDetailsScreen() {
     } catch (error) {
       Alert.alert('Error', 'Failed to proceed to booking');
       console.error('Error booking:', error);
+    }
+  };
+
+  const handleOpenARCustomizer = () => {
+    try {
+      const image = product.images && product.images.length > 0 ? product.images[0] : product.image;
+      router.push({ pathname: '/(tabs)/ar-customizer', params: { image } });
+    } catch (error) {
+      Alert.alert('Error', 'Failed to open AR customizer');
+      console.error('Error opening AR customizer:', error);
     }
   };
 
@@ -197,6 +209,101 @@ export default function ProductDetailsScreen() {
             ))}
           </View>
 
+          {/* Delivery Details */}
+          <View style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>Delivery & Setup</ThemedText>
+            <ThemedText style={styles.description}>
+              Professional team will handle delivery, on‑site setup and teardown. Standard setup time is 2‑3 hours
+              before your event. Free delivery within 15 km; nominal extra charges may apply beyond that.
+            </ThemedText>
+          </View>
+
+          {/* Return & Cancellation Policy */}
+          <View style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>Return & Cancellation</ThemedText>
+            <ThemedText style={styles.description}>
+              Décor setups are service‑based and are not returnable, but you can reschedule or cancel up to 72 hours
+              before the event with full refund of advance. Within 72 hours, partial charges may apply as per vendor
+              policy.
+            </ThemedText>
+          </View>
+
+          {/* Similar Products */}
+          <View style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>Similar Décor Ideas</ThemedText>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.similarScroll}
+            >
+              {DECOR_PRODUCTS.filter(p => p.category === product.category && p.id !== product.id).map(similar => (
+                <TouchableOpacity
+                  key={similar.id}
+                  style={styles.similarCard}
+                  activeOpacity={0.8}
+                  onPress={() => router.push({ pathname: '/product-details', params: { productId: similar.id } })}
+                >
+                  <Image
+                    source={{ uri: similar.image }}
+                    style={styles.similarImage}
+                    contentFit="cover"
+                  />
+                  <View style={styles.similarInfo}>
+                    <ThemedText numberOfLines={1} style={styles.similarTitle}>{similar.title}</ThemedText>
+                    <ThemedText style={styles.similarPrice}>₹{similar.price.toLocaleString()}</ThemedText>
+                    <View style={styles.similarRatingRow}>
+                      <IconSymbol name="star.fill" size={12} color="#FFB800" />
+                      <ThemedText style={styles.similarRatingText}>{similar.rating} ({similar.reviews})</ThemedText>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+
+          {/* Customize & Visualize Section */}
+          <View style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>Customize & Visualize</ThemedText>
+            <ThemedText style={styles.sectionSubtitle}>
+              Tweak this theme, generate layout ideas with AI, and preview it in AR/3D before booking.
+            </ThemedText>
+            <View style={styles.customizeRow}>
+              <TouchableOpacity
+                style={styles.customizeButton}
+                activeOpacity={0.8}
+                onPress={() => router.push('/(tabs)/ai-designer')}
+              >
+                <LinearGradient
+                  colors={Gradients.button as any}
+                  style={styles.customizeGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <IconSymbol name="wand.and.stars" size={20} color="#FFFFFF" />
+                  <ThemedText style={styles.customizeText}>AI Layout Ideas</ThemedText>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.customizeRow}>
+              <TouchableOpacity
+                style={styles.secondaryCustomizeButton}
+                activeOpacity={0.8}
+                onPress={handleOpenARCustomizer}
+              >
+                <IconSymbol name="camera.viewfinder" size={18} color="#8B5CF6" />
+                <ThemedText style={styles.secondaryCustomizeText}>Try This Setup in AR</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.secondaryCustomizeButton}
+                activeOpacity={0.8}
+                onPress={() => setShow3DPreview(true)}
+              >
+                <IconSymbol name="cube.transparent" size={18} color="#8B5CF6" />
+                <ThemedText style={styles.secondaryCustomizeText}>View 3D Model (Demo)</ThemedText>
+              </TouchableOpacity>
+            </View>
+          </View>
+
           {/* Quantity Selector */}
           <View style={styles.section}>
             <ThemedText style={styles.sectionTitle}>Quantity</ThemedText>
@@ -261,6 +368,36 @@ export default function ProductDetailsScreen() {
           </LinearGradient>
         </TouchableOpacity>
       </View>
+
+      {/* 3D Model Preview Modal (demo using a sample model) */}
+      <Modal
+        visible={show3DPreview}
+        animationType="slide"
+        onRequestClose={() => setShow3DPreview(false)}
+      >
+        <ThemedView style={{ flex: 1 }}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setShow3DPreview(false)} activeOpacity={0.7}>
+              <IconSymbol name="xmark" size={24} color="#111827" />
+            </TouchableOpacity>
+            <ThemedText style={styles.modalTitle}>3D Preview (Sample)</ThemedText>
+            <View style={{ width: 24 }} />
+          </View>
+          {product.modelUrl ? (
+            <ModelViewerWebView
+              modelUrl={product.modelUrl}
+              backgroundColor="#FFFFFF"
+              style={{ flex: 1 }}
+            />
+          ) : (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+              <ThemedText style={styles.sectionSubtitle}>
+                3D model preview is not available for this décor package yet.
+              </ThemedText>
+            </View>
+          )}
+        </ThemedView>
+      </Modal>
 
       {/* Success Modal */}
       <Modal
@@ -552,6 +689,52 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     color: '#666',
+  },
+  similarScroll: {
+    paddingVertical: 4,
+    paddingRight: 4,
+  },
+  similarCard: {
+    width: 180,
+    marginRight: 12,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  similarImage: {
+    width: '100%',
+    height: 110,
+    backgroundColor: '#F3F4F6',
+  },
+  similarInfo: {
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  similarTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  similarPrice: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#2D1B69',
+    marginBottom: 4,
+  },
+  similarRatingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  similarRatingText: {
+    fontSize: 11,
+    color: '#6B7280',
   },
   quantitySelector: {
     flexDirection: 'row',
