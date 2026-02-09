@@ -2,6 +2,7 @@ import RealisticARViewer from '@/components/RealisticARViewer';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { DECOR_PRODUCTS } from '@/constants/products';
 import { Gradients } from '@/constants/theme';
 import { useApp } from '@/context/app-context';
 import { Image } from 'expo-image';
@@ -26,96 +27,23 @@ interface Product {
   };
 }
 
-// Mock data
-const MOCK_PRODUCTS: Product[] = [
-  {
-    id: '1',
-    title: 'Rustic Wedding Arch Setup',
-    price: 1499,
-    image: 'https://images.unsplash.com/photo-1519741497674-611481863552',
-    category: 'Wedding',
-    rating: 4.8,
-    reviews: 234,
-    discount: 20,
-    vendor: { id: 'v1', name: 'Elite Events' },
+// Derive explore products from centralized DECOR_PRODUCTS for consistency
+const EXPLORE_PRODUCTS: Product[] = DECOR_PRODUCTS.map(product => ({
+  id: product.id,
+  title: product.title,
+  price: product.price,
+  image: product.image,
+  category: product.category,
+  rating: product.rating,
+  reviews: product.reviews,
+  discount: product.discount,
+  vendor: {
+    id: product.vendor.id,
+    name: product.vendor.name,
   },
-  {
-    id: '2',
-    title: 'Garden Party Décor Bundle',
-    price: 899,
-    image: 'https://images.unsplash.com/photo-1464366400160-69de5c4a4859',
-    category: 'Party',
-    rating: 4.6,
-    reviews: 156,
-    discount: 15,
-    vendor: { id: 'v2', name: 'Garden Dreams' },
-  },
-  {
-    id: '3',
-    title: 'Birthday Balloon Arrangement',
-    price: 299,
-    image: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d',
-    category: 'Birthday',
-    rating: 4.7,
-    reviews: 89,
-    vendor: { id: 'v3', name: 'Party Perfect' },
-  },
-  {
-    id: '4',
-    title: 'Corporate Event Stage Setup',
-    price: 2499,
-    image: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622',
-    category: 'Corporate',
-    rating: 4.9,
-    reviews: 312,
-    discount: 10,
-    vendor: { id: 'v4', name: 'Pro Events Co' },
-  },
-  {
-    id: '5',
-    title: 'Floral Centerpiece Collection',
-    price: 599,
-    image: 'https://images.unsplash.com/photo-1487530811176-3780de880c2d',
-    category: 'Wedding',
-    rating: 4.5,
-    reviews: 178,
-    vendor: { id: 'v1', name: 'Elite Events' },
-  },
-  {
-    id: '6',
-    title: 'LED Lighting Package',
-    price: 1299,
-    image: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30',
-    category: 'Party',
-    rating: 4.8,
-    reviews: 245,
-    discount: 25,
-    vendor: { id: 'v5', name: 'Light Magic' },
-  },
-  {
-    id: '7',
-    title: 'Kids Party Fun Zone',
-    price: 799,
-    image: 'https://images.unsplash.com/photo-1513151233558-d860c5398176',
-    category: 'Birthday',
-    rating: 4.6,
-    reviews: 134,
-    vendor: { id: 'v3', name: 'Party Perfect' },
-  },
-  {
-    id: '8',
-    title: 'Elegant Table Settings',
-    price: 449,
-    image: 'https://images.unsplash.com/photo-1478146896981-b80fe463b330',
-    category: 'Wedding',
-    rating: 4.7,
-    reviews: 198,
-    discount: 12,
-    vendor: { id: 'v1', name: 'Elite Events' },
-  },
-];
+}));
 
-const CATEGORIES = ['All', 'Wedding', 'Birthday', 'Party', 'Corporate', 'Festival'];
+const CATEGORIES = ['All', 'Wedding', 'Birthday', 'Baby Shower', 'Engagement', 'Corporate', 'Festive', 'Outdoor', 'Romantic'];
 const SORT_OPTIONS = ['Popular', 'Price: Low to High', 'Price: High to Low', 'Top Rated'];
 
 export default function ExploreScreen() {
@@ -130,7 +58,7 @@ export default function ExploreScreen() {
   // Get cart count
   const cartCount = cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
 
-  const filteredProducts = MOCK_PRODUCTS.filter(product => {
+  const filteredProducts = EXPLORE_PRODUCTS.filter(product => {
     const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
     return matchesSearch && matchesCategory;
@@ -207,7 +135,7 @@ export default function ExploreScreen() {
 
       <TouchableOpacity 
         style={styles.productInfo}
-        onPress={() => router.push('/product-details')}
+        onPress={() => router.push({ pathname: '/product-details', params: { productId: item.id } })}
         activeOpacity={0.7}
       >
         <ThemedText style={styles.productTitle} numberOfLines={2}>{item.title}</ThemedText>

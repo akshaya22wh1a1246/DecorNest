@@ -80,9 +80,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         id: '1',
         email: 'test@example.com',
         name: 'Test User',
-        role: 'user'
-      }
-    }
+        role: 'user',
+      },
+    },
+    // Demo vendor account mapped to Elite Events Co. (v1)
+    'vendor@decornest.com': {
+      password: 'password123',
+      user: {
+        id: 'v1',
+        email: 'vendor@decornest.com',
+        name: 'Elite Events Vendor',
+        role: 'vendor',
+      },
+    },
   };
 
   const login = async (email: string, password: string) => {

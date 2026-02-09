@@ -12,10 +12,13 @@ import {
     VENUE_SIZE_MULTIPLIERS,
     VENUE_SIZES
 } from '@/constants/budget-constants';
+import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Print from 'expo-print';
 import { router, useLocalSearchParams } from 'expo-router';
+import * as Sharing from 'expo-sharing';
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { SelectList } from 'react-native-dropdown-select-list';
 
 export default function BudgetPlannerScreen() {
@@ -37,6 +40,7 @@ export default function BudgetPlannerScreen() {
   const [eventDate, setEventDate] = useState('');
   const [customItem, setCustomItem] = useState({ title: '', price: '' });
   const [showAiSuggestion, setShowAiSuggestion] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
   
   const product = params.product;
 
@@ -145,6 +149,145 @@ export default function BudgetPlannerScreen() {
     Alert.alert('Share', 'Share plan via email/message');
   };
 
+  const generateBudgetHtml = () => {
+    const selectedServiceList = SERVICES.filter(s => selectedServices[s.id]);
+    const customItemsRows = plan
+      .map(item => `
+        <tr>
+          <td style="padding:8px 12px;border:1px solid #eee;">${item.title}</td>
+          <td style="padding:8px 12px;text-align:right;border:1px solid #eee;">₹${Number(item.price).toFixed(2)}</td>
+        </tr>`)
+      .join('');
+
+    const servicesRows = selectedServiceList
+      .map(service => `
+        <tr>
+          <td style="padding:8px 12px;border:1px solid #eee;">${service.title}</td>
+          <td style="padding:8px 12px;text-align:right;border:1px solid #eee;">₹${service.id === 'catering' ? `${service.basePrice}/guest` : service.basePrice}</td>
+        </tr>`)
+      .join('');
+
+    return `
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>Budget Estimate</title>
+        </head>
+        <body style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding:16px; color:#111827;">
+          <h1 style="font-size:24px; margin-bottom:4px;">DecorNest Budget Estimate</h1>
+          <p style="margin:0 0 16px; color:#6b7280;">Generated on ${new Date().toLocaleDateString()}</p>
+
+          <h2 style="font-size:18px; margin:16px 0 8px;">Event Details</h2>
+          <table style="border-collapse:collapse; width:100%; max-width:480px;">
+            <tr><td style="padding:4px 0;">Event Name</td><td style="padding:4px 0; text-align:right; font-weight:600;">${eventName || '-'}</td></tr>
+            <tr><td style="padding:4px 0;">Event Date</td><td style="padding:4px 0; text-align:right; font-weight:600;">${eventDate || '-'}</td></tr>
+            <tr><td style="padding:4px 0;">Event Type</td><td style="padding:4px 0; text-align:right; font-weight:600;">${formData.eventType}</td></tr>
+            <tr><td style="padding:4px 0;">Decoration Style</td><td style="padding:4px 0; text-align:right; font-weight:600;">${formData.decorationStyle}</td></tr>
+            <tr><td style="padding:4px 0;">Guests</td><td style="padding:4px 0; text-align:right; font-weight:600;">${formData.guestCount || '-'}</td></tr>
+            <tr><td style="padding:4px 0;">Venue Size</td><td style="padding:4px 0; text-align:right; font-weight:600;">${VENUE_SIZES.find(s => s.value === formData.venueSize)?.label || '-'}</td></tr>
+            <tr><td style="padding:4px 0;">Budget</td><td style="padding:4px 0; text-align:right; font-weight:600;">${budget ? `₹${Number(budget).toFixed(2)}` : '-'}</td></tr>
+          </table>
+
+          <h2 style="font-size:18px; margin:24px 0 8px;">Selected Services</h2>
+          <table style="border-collapse:collapse; width:100%; max-width:480px; border:1px solid #e5e7eb;">
+            <thead>
+              <tr>
+                <th style="padding:8px 12px; text-align:left; background:#f3f4f6; border-bottom:1px solid #e5e7eb;">Service</th>
+                <th style="padding:8px 12px; text-align:right; background:#f3f4f6; border-bottom:1px solid #e5e7eb;">Base Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${servicesRows || '<tr><td colspan="2" style="padding:8px 12px; text-align:center; color:#9ca3af;">No services selected</td></tr>'}
+            </tbody>
+          </table>
+
+          <h2 style="font-size:18px; margin:24px 0 8px;">Custom Items</h2>
+          <table style="border-collapse:collapse; width:100%; max-width:480px; border:1px solid #e5e7eb;">
+            <thead>
+              <tr>
+                <th style="padding:8px 12px; text-align:left; background:#f3f4f6; border-bottom:1px solid #e5e7eb;">Item</th>
+                <th style="padding:8px 12px; text-align:right; background:#f3f4f6; border-bottom:1px solid #e5e7eb;">Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${customItemsRows || '<tr><td colspan="2" style="padding:8px 12px; text-align:center; color:#9ca3af;">No custom items added</td></tr>'}
+            </tbody>
+          </table>
+
+          <h2 style="font-size:18px; margin:24px 0 8px;">Summary</h2>
+          <table style="border-collapse:collapse; width:100%; max-width:480px;">
+            <tr><td style="padding:4px 0;">Services Cost</td><td style="padding:4px 0; text-align:right; font-weight:600;">₹${estimatedBudget.services.toFixed(2)}</td></tr>
+            <tr><td style="padding:4px 0;">Labor Cost</td><td style="padding:4px 0; text-align:right; font-weight:600;">₹${estimatedBudget.labor.toFixed(2)}</td></tr>
+            <tr><td style="padding:4px 0;">Custom Items</td><td style="padding:4px 0; text-align:right; font-weight:600;">₹${estimatedBudget.custom.toFixed(2)}</td></tr>
+            <tr><td style="padding:8px 0; font-size:16px;">Total Estimated Cost</td><td style="padding:8px 0; text-align:right; font-size:16px; font-weight:700;">₹${estimatedBudget.total.toFixed(2)}</td></tr>
+          </table>
+        </body>
+      </html>
+    `;
+  };
+
+  const handleDownloadEstimate = async () => {
+    if (isDownloading) return;
+
+    try {
+      setIsDownloading(true);
+      const isSharingAvailable = await Sharing.isAvailableAsync();
+      if (!isSharingAvailable) {
+        Alert.alert('Not available', 'Sharing is not available on this device.');
+        return;
+      }
+
+      const html = generateBudgetHtml();
+      const { uri } = await Print.printToFileAsync({ html });
+
+      await Sharing.shareAsync(uri, {
+        mimeType: 'application/pdf',
+        dialogTitle: 'Share budget estimate',
+      });
+    } catch (error) {
+      console.error('Error generating estimate PDF', error);
+      const message = error?.message || '';
+      if (message.includes('Another share request is being processed')) {
+        Alert.alert('Please wait', 'A share dialog is already open. Close it before trying again.');
+      } else {
+        Alert.alert('Error', 'Could not generate budget estimate. Please try again.');
+      }
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const parseEventDate = (value) => {
+    const [day, month, year] = value.split('/');
+    const d = Number(day);
+    const m = Number(month);
+    const y = Number(year);
+    if (!d || !m || !y) return new Date();
+    return new Date(y, m - 1, d);
+  };
+
+  const handleOpenDatePicker = () => {
+    if (Platform.OS !== 'android') {
+      Alert.alert('Date Picker', 'On this device, please type the date manually as DD/MM/YYYY.');
+      return;
+    }
+
+    const currentDate = eventDate ? parseEventDate(eventDate) : new Date();
+
+    DateTimePickerAndroid.open({
+      value: currentDate,
+      onChange: (event, selectedDate) => {
+        if (event.type !== 'set' || !selectedDate) return;
+        const day = String(selectedDate.getDate()).padStart(2, '0');
+        const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+        const year = selectedDate.getFullYear();
+        setEventDate(`${day}/${month}/${year}`);
+      },
+      mode: 'date',
+      is24Hour: true,
+    });
+  };
+
   return (
     <ThemedView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -201,16 +344,17 @@ export default function BudgetPlannerScreen() {
             />
           </View>
           
-          <View style={styles.inputContainer}>
+          <TouchableOpacity style={styles.inputContainer} onPress={handleOpenDatePicker} activeOpacity={0.8}>
             <IconSymbol name="calendar" size={20} color="#8B5CF6" />
             <TextInput
               style={styles.input}
               placeholder="Event Date (DD/MM/YYYY)"
               placeholderTextColor="#999"
               value={eventDate}
-              onChangeText={setEventDate}
+              editable={false}
+              pointerEvents="none"
             />
-          </View>
+          </TouchableOpacity>
           
           <View style={styles.inputContainer}>
             <IconSymbol name="indianrupeesign.circle.fill" size={20} color="#8B5CF6" />
@@ -434,8 +578,9 @@ export default function BudgetPlannerScreen() {
         <View style={styles.buttonsContainer}>
           <TouchableOpacity 
             style={styles.downloadButtonWrapper} 
-            onPress={() => Alert.alert('Coming Soon', 'Download estimate feature coming soon!')}
+            onPress={handleDownloadEstimate}
             activeOpacity={0.8}
+            disabled={isDownloading}
           >
             <View style={styles.downloadButton}>
               <IconSymbol name="arrow.down.doc.fill" size={20} color="#8B5CF6" />
@@ -445,7 +590,7 @@ export default function BudgetPlannerScreen() {
           
           <TouchableOpacity 
             style={styles.vendorButtonWrapper}
-            onPress={() => router.push('/vendors')}
+            onPress={() => router.push('/vendor-dashboard')}
             activeOpacity={0.8}
           >
             <LinearGradient

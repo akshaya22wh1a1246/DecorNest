@@ -423,7 +423,10 @@ export default function BookingPaymentScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ScrollView>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 32 }}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.progress}>
           <View style={[styles.progressStep, styles.progressStepActive]}>
             <ThemedText style={styles.progressText}>1. Booking</ThemedText>
