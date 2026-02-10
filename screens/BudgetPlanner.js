@@ -2,15 +2,15 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import {
-    AI_SUGGESTIONS,
-    DECORATION_STYLES,
-    EVENT_TYPE_MULTIPLIERS,
-    EVENT_TYPES,
-    LABOR_COST_PERCENTAGE,
-    SERVICES,
-    STYLE_MULTIPLIERS,
-    VENUE_SIZE_MULTIPLIERS,
-    VENUE_SIZES
+  AI_SUGGESTIONS,
+  DECORATION_STYLES,
+  EVENT_TYPE_MULTIPLIERS,
+  EVENT_TYPES,
+  LABOR_COST_PERCENTAGE,
+  SERVICES,
+  STYLE_MULTIPLIERS,
+  VENUE_SIZE_MULTIPLIERS,
+  VENUE_SIZES
 } from '@/constants/budget-constants';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
