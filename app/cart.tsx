@@ -78,7 +78,7 @@ export default function CartScreen() {
               activeOpacity={0.7}
             >
               <Image
-                source={{ uri: product.image }}
+                source={typeof product.image === 'number' ? product.image : { uri: product.image }}
                 style={styles.productImage}
                 contentFit="cover"
               />

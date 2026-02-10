@@ -130,10 +130,12 @@ export default function OrdersScreen() {
             <View style={styles.divider} />
 
             <View style={styles.orderItems}>
-              {order.items.map((item, index) => (
+              {order.items.map((item, index) => {
+                const imgSrc = item.image || item.images?.[0];
+                return (
                 <View key={item.id || index} style={styles.itemRow}>
                   <Image
-                    source={{ uri: item.image || item.images?.[0] }}
+                    source={typeof imgSrc === 'number' ? imgSrc : { uri: imgSrc }}
                     style={styles.itemImage}
                     contentFit="cover"
                   />
@@ -145,7 +147,8 @@ export default function OrdersScreen() {
                     </View>
                   </View>
                 </View>
-              ))}
+              );
+              })}
             </View>
 
             <View style={styles.divider} />

@@ -43,7 +43,7 @@ const EXPLORE_PRODUCTS: Product[] = DECOR_PRODUCTS.map(product => ({
   },
 }));
 
-const CATEGORIES = ['All', 'Wedding', 'Birthday', 'Baby Shower', 'Engagement', 'Corporate', 'Festive', 'Outdoor', 'Romantic'];
+const CATEGORIES = ['All', 'Haldi', 'Mehendi', 'Sangeet', 'Wedding', 'Reception', 'Anniversary', 'Welcome Baby', 'Baby Shower', 'Birthday'];
 const SORT_OPTIONS = ['Popular', 'Price: Low to High', 'Price: High to Low', 'Top Rated'];
 
 export default function ExploreScreen() {

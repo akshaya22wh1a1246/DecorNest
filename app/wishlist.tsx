@@ -220,7 +220,7 @@ export default function WishlistScreen() {
                   onPress={() => setFullScreenImage(design.image)}
                 >
                   <Image
-                    source={{ uri: design.image }}
+                    source={typeof design.image === 'number' ? design.image : { uri: design.image }}
                     style={styles.productImage}
                     contentFit="cover"
                   />
@@ -272,7 +272,7 @@ export default function WishlistScreen() {
                   activeOpacity={0.7}
                 >
                   <Image
-                    source={{ uri: product.image }}
+                    source={typeof product.image === 'number' ? product.image : { uri: product.image }}
                     style={styles.productImage}
                     contentFit="cover"
                   />

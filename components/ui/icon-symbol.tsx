@@ -65,6 +65,8 @@ const MAPPING: IconMapping = {
   'indianrupeesign.circle.fill': 'currency-rupee',
   'indianrupeesign': 'currency-rupee',
   'chart.bar.fill': 'bar-chart',
+  'chart.bar': 'bar-chart',
+  'line.3.horizontal.decrease.circle': 'filter-list',
 
   // Media & camera
   'camera.fill': 'photo-camera',
