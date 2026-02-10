@@ -170,22 +170,21 @@ export default function SignupScreen({ navigation }) {
               {/* Divider */}
               <View style={styles.divider}>
                 <View style={styles.dividerLine} />
-                <ThemedText style={styles.dividerText}>or sign up with</ThemedText>
+                <ThemedText style={styles.dividerText}>or</ThemedText>
                 <View style={styles.dividerLine} />
               </View>
 
-              {/* Social Signup */}
-              <View style={styles.socialContainer}>
-                <TouchableOpacity style={styles.socialButton} activeOpacity={0.7}>
-                  <IconSymbol name="globe" size={28} color="#DB4437" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.socialButton} activeOpacity={0.7}>
-                  <IconSymbol name="envelope.circle.fill" size={28} color="#4285F4" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.socialButton} activeOpacity={0.7}>
-                  <IconSymbol name="apple.logo" size={28} color="#000000" />
-                </TouchableOpacity>
-              </View>
+              {/* Google Signup */}
+              <TouchableOpacity
+                style={styles.googleButtonWrapper}
+                onPress={() => Alert.alert('Google Sign In', 'Google authentication will be implemented here')}
+                activeOpacity={0.8}
+              >
+                <View style={styles.googleButton}>
+                  <IconSymbol name="globe" size={24} color="#DB4437" />
+                  <ThemedText style={styles.googleButtonText}>Continue with Google</ThemedText>
+                </View>
+              </TouchableOpacity>
 
               {/* Footer */}
               <View style={styles.footer}>
@@ -342,21 +341,30 @@ const styles = StyleSheet.create({
     color: '#999',
     marginHorizontal: 16,
   },
-  socialContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16,
+  googleButtonWrapper: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     marginBottom: 32,
   },
-  socialButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#F5F3FF',
+  googleButton: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#E6E0FF',
+    paddingVertical: 14,
+    gap: 12,
+  },
+  googleButtonText: {
+    color: '#2D1B69',
+    fontSize: 15,
+    fontWeight: '600',
   },
   footer: {
     flexDirection: 'row',

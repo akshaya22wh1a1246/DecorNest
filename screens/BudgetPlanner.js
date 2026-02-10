@@ -15,14 +15,13 @@ import {
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Print from 'expo-print';
-import { router, useLocalSearchParams } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Platform, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { SelectList } from 'react-native-dropdown-select-list';
 
-export default function BudgetPlannerScreen() {
-  const params = useLocalSearchParams();
+export default function BudgetPlannerScreen({ route, navigation }) {
+  const params = route?.params || {};
   const [formData, setFormData] = useState({
     eventType: EVENT_TYPES[0],
     decorationStyle: DECORATION_STYLES[0],
@@ -590,7 +589,7 @@ export default function BudgetPlannerScreen() {
           
           <TouchableOpacity 
             style={styles.vendorButtonWrapper}
-            onPress={() => router.push('/vendor-dashboard')}
+            onPress={() => navigation.navigate('VendorDashboard')}
             activeOpacity={0.8}
           >
             <LinearGradient
