@@ -3,7 +3,6 @@ import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useApp } from '@/context/app-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Link, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
     Alert,
@@ -19,8 +18,7 @@ import {
 
 const { width } = Dimensions.get('window');
 
-export default function SignupScreen() {
-  const router = useRouter();
+export default function SignupScreen({ navigation }) {
   const { signup } = useApp();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -42,7 +40,7 @@ export default function SignupScreen() {
     setIsLoading(true);
     try {
       await signup(email, password, name);
-      router.replace('/(tabs)');
+      navigation.replace('Home');
     } catch (error) {
       Alert.alert('Error', error instanceof Error ? error.message : 'Signup failed');
     } finally {
@@ -135,9 +133,9 @@ export default function SignupScreen() {
                   activeOpacity={0.7}
                 >
                   <IconSymbol
-                    name={showPassword ? 'eye.slash.fill' : 'eye.fill'}
-                    size={20}
-                    color="#666"
+                    name={showPassword ? 'eye.slash' : 'eye'}
+                    size={22}
+                    color="#8B5CF6"
                   />
                 </TouchableOpacity>
               </View>
@@ -179,24 +177,24 @@ export default function SignupScreen() {
               {/* Social Signup */}
               <View style={styles.socialContainer}>
                 <TouchableOpacity style={styles.socialButton} activeOpacity={0.7}>
-                  <IconSymbol name="g.circle.fill" size={24} color="#DB4437" />
+                  <IconSymbol name="globe" size={28} color="#DB4437" />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.socialButton} activeOpacity={0.7}>
-                  <IconSymbol name="f.circle.fill" size={24} color="#4267B2" />
+                  <IconSymbol name="envelope.circle.fill" size={28} color="#4285F4" />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.socialButton} activeOpacity={0.7}>
-                  <IconSymbol name="apple.logo" size={24} color="#000000" />
+                  <IconSymbol name="apple.logo" size={28} color="#000000" />
                 </TouchableOpacity>
               </View>
 
               {/* Footer */}
               <View style={styles.footer}>
                 <ThemedText style={styles.footerText}>Already have an account? </ThemedText>
-                <Link href="/login" asChild>
-                  <TouchableOpacity activeOpacity={0.7}>
-                    <ThemedText style={styles.link}>Login</ThemedText>
-                  </TouchableOpacity>
-                </Link>
+                <TouchableOpacity 
+                  activeOpacity={0.7}
+                  onPress={() => navigation.navigate('Login')}>
+                  <ThemedText style={styles.link}>Login</ThemedText>
+                </TouchableOpacity>
               </View>
             </View>
           </ScrollView>

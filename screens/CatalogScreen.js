@@ -32,7 +32,7 @@ export default function CatalogScreen({ navigation, route }) {
             style={styles.card}
             onPress={() => navigation.navigate('ProductDetail', { product: item })}
           >
-            <Image source={{ uri: item.image }} style={styles.image} />
+            <Image source={typeof item.image === 'number' ? item.image : { uri: item.image }} style={styles.image} />
             <Text style={styles.title}>{item.title}</Text>
             <Text>Price: ₹{item.price}</Text>
           </TouchableOpacity>

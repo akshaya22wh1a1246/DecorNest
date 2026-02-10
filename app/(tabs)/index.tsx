@@ -18,16 +18,17 @@ import {
 } from 'react-native';
 const { width } = Dimensions.get('window');
 
-// Mock Categories
+// Categories matching actual products
 const CATEGORIES = [
-  { id: '1', name: 'Birthday', emoji: '🎂' },
-  { id: '2', name: 'Wedding', emoji: '💒' },
-  { id: '3', name: 'Baby Shower', emoji: '👶' },
-  { id: '4', name: 'Engagement', emoji: '💍' },
-  { id: '5', name: 'Corporate', emoji: '🏢' },
-  { id: '6', name: 'Festive', emoji: '✨' },
-  { id: '7', name: 'Outdoor', emoji: '🌳' },
-  { id: '8', name: 'Romantic', emoji: '💕' },
+  { id: '1', name: 'Haldi', emoji: '🌼' },
+  { id: '2', name: 'Mehendi', emoji: '🎨' },
+  { id: '3', name: 'Sangeet', emoji: '🎵' },
+  { id: '4', name: 'Wedding', emoji: '💒' },
+  { id: '5', name: 'Reception', emoji: '🎊' },
+  { id: '6', name: 'Anniversary', emoji: '💑' },
+  { id: '7', name: 'Welcome Baby', emoji: '🍼' },
+  { id: '8', name: 'Baby Shower', emoji: '👶' },
+  { id: '9', name: 'Birthday', emoji: '🎂' },
 ];
 
 // Use centralized DECOR_PRODUCTS from constants for consistency across app

@@ -1,7 +1,7 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { MOCK_PRODUCTS } from '@/constants/mock-data';
+import { DECOR_PRODUCTS } from '@/constants/products';
 import { useApp } from '@/context/app-context';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -14,7 +14,7 @@ export default function ProductDetailsScreen() {
   const [quantity, setQuantity] = useState(1);
   const { addToCart, removeFromCart, cartItems, toggleWishlist, isInWishlist } = useApp();
 
-  const product = MOCK_PRODUCTS.find(p => p.id === params.productId);
+  const product = DECOR_PRODUCTS.find(p => p.id === params.productId);
   const isInCart = cartItems.some(item => item.productId === params.productId);
   
   if (!product) {
@@ -56,7 +56,7 @@ export default function ProductDetailsScreen() {
     <ThemedView style={styles.container}>
       <ScrollView>
         <Image
-          source={{ uri: product.images[0] }}
+          source={typeof product.images[0] === 'number' ? product.images[0] : { uri: product.images[0] }}
           style={styles.image}
           contentFit="cover"
         />

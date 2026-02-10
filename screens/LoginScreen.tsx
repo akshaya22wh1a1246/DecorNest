@@ -3,7 +3,6 @@ import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useApp } from '@/context/app-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Link, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
     Alert,
@@ -19,8 +18,7 @@ import {
 
 const { width } = Dimensions.get('window');
 
-export default function LoginScreen() {
-  const router = useRouter();
+export default function LoginScreen({ navigation }) {
   const { login } = useApp();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -36,7 +34,7 @@ export default function LoginScreen() {
     setIsLoading(true);
     try {
       await login(email, password);
-      router.replace('/(tabs)');
+      navigation.replace('Home');
     } catch (error) {
       Alert.alert('Error', error instanceof Error ? error.message : 'Login failed');
     } finally {
@@ -115,9 +113,9 @@ export default function LoginScreen() {
                   activeOpacity={0.7}
                 >
                   <IconSymbol
-                    name={showPassword ? 'eye.slash.fill' : 'eye.fill'}
-                    size={20}
-                    color="#666"
+                    name={showPassword ? 'eye.slash' : 'eye'}
+                    size={22}
+                    color="#8B5CF6"
                   />
                 </TouchableOpacity>
               </View>
@@ -169,11 +167,11 @@ export default function LoginScreen() {
               {/* Footer */}
               <View style={styles.footer}>
                 <ThemedText style={styles.footerText}>Don't have an account? </ThemedText>
-                <Link href="/signup" asChild>
-                  <TouchableOpacity activeOpacity={0.7}>
-                    <ThemedText style={styles.link}>Sign Up</ThemedText>
-                  </TouchableOpacity>
-                </Link>
+                <TouchableOpacity 
+                  activeOpacity={0.7}
+                  onPress={() => navigation.navigate('Signup')}>
+                  <ThemedText style={styles.link}>Sign Up</ThemedText>
+                </TouchableOpacity>
               </View>
             </View>
           </ScrollView>

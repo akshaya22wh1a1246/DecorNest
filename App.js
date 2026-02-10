@@ -5,7 +5,10 @@ import BudgetPlanner from './screens/BudgetPlanner';
 import CartScreen from './screens/CartScreen';
 import ContactScreen from './screens/ContactScreen';
 import EventsScreen from './screens/EventsScreen';
+import ExploreCategoriesScreen from './screens/ExploreCategoriesScreen';
 import HomeScreen from './screens/HomeScreen';
+import LoginScreen from './screens/LoginScreen';
+import SignupScreen from './screens/SignupScreen';
 import ProductDetailsScreen from './screens/ProductDetailsScreen';
 import ProductsScreen from './screens/ProductsScreen';
 import ServicesScreen from './screens/ServicesScreen';
@@ -18,7 +21,7 @@ export default function App() {
     <AppProvider>
       <NavigationContainer>
         <Stack.Navigator 
-        initialRouteName="Home" 
+        initialRouteName="Login" 
         screenOptions={{ 
           headerShown: false,
           headerStyle: {
@@ -31,6 +34,16 @@ export default function App() {
         }}
       >
         <Stack.Screen 
+          name="Login" 
+          component={LoginScreen} 
+          options={{ title: 'Login', headerShown: false }}
+        />
+        <Stack.Screen 
+          name="Signup" 
+          component={SignupScreen} 
+          options={{ title: 'Sign Up', headerShown: false }}
+        />
+        <Stack.Screen 
           name="Home" 
           component={HomeScreen} 
           options={{ title: 'Decor Nest', headerShown: false }}
@@ -39,6 +52,11 @@ export default function App() {
           name="Products" 
           component={ProductsScreen}
           options={{ headerShown: true }}
+        />
+        <Stack.Screen 
+          name="ExploreCategoriesScreen" 
+          component={ExploreCategoriesScreen}
+          options={{ headerShown: false }}
         />
         <Stack.Screen 
           name="ProductDetails" 

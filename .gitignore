@@ -41,3 +41,8 @@ app-example
 # generated native folders
 /ios
 /android
+
+# Firebase credentials (NEVER COMMIT!)
+config/firebase.js
+scripts/serviceAccountKey.json
+scripts/images-to-upload/

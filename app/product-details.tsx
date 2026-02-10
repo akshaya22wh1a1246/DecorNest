@@ -81,7 +81,7 @@ export default function ProductDetailsScreen() {
         {/* Image Gallery */}
         <View style={styles.imageGallery}>
           <Image
-            source={{ uri: product.images[selectedImageIndex] }}
+            source={typeof product.images[selectedImageIndex] === 'number' ? product.images[selectedImageIndex] : { uri: product.images[selectedImageIndex] }}
             style={styles.mainImage}
             contentFit="cover"
           />
