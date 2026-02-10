@@ -1864,15 +1864,10 @@ export default function HomeScreen({ navigation }) {
       {/* Sidebar Modal */}
       <Modal
         visible={showSidebar}
-        animationType="slide"
+        animationType="none"
         transparent={true}
         onRequestClose={() => setShowSidebar(false)}>
         <View style={styles.sidebarOverlay}>
-          <TouchableOpacity 
-            style={styles.sidebarBackdrop}
-            activeOpacity={1}
-            onPress={() => setShowSidebar(false)}
-          />
           <View style={styles.sidebarContainer}>
             <LinearGradient
               colors={['#E6E0FF', '#FFD6E0']}
@@ -1881,12 +1876,16 @@ export default function HomeScreen({ navigation }) {
                 <View style={styles.sidebarProfileCircle}>
                   <IconSymbol name="person.fill" size={40} color="#8B5CF6" />
                 </View>
-                <Text style={styles.sidebarUserName}>{user?.name || 'Guest User'}</Text>
-                <Text style={styles.sidebarUserEmail}>{user?.email || ''}</Text>
+                <Text style={styles.sidebarUserName}>{user?.name}</Text>
+                <Text style={styles.sidebarUserEmail}>{user?.email}</Text>
               </View>
             </LinearGradient>
             
-            <ScrollView style={styles.sidebarContent}>
+            <ScrollView 
+              style={styles.sidebarContent}
+              contentContainerStyle={styles.sidebarContentContainer}
+              showsVerticalScrollIndicator={true}
+              bounces={true}>
               <TouchableOpacity 
                 style={styles.sidebarItem}
                 onPress={() => { setShowSidebar(false); navigation.navigate('Home'); }}>
@@ -1903,7 +1902,7 @@ export default function HomeScreen({ navigation }) {
               
               <TouchableOpacity 
                 style={styles.sidebarItem}
-                onPress={() => { setShowSidebar(false); /* Navigate to Orders */ }}>
+                onPress={() => { setShowSidebar(false); navigation.navigate('Orders'); }}>
                 <IconSymbol name="bag.fill" size={24} color="#8B5CF6" />
                 <Text style={styles.sidebarItemText}>My Orders</Text>
               </TouchableOpacity>
@@ -1928,12 +1927,19 @@ export default function HomeScreen({ navigation }) {
                 <IconSymbol name="indianrupeesign.circle.fill" size={24} color="#8B5CF6" />
                 <Text style={styles.sidebarItemText}>Budget Planner</Text>
               </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.sidebarItem}
+                onPress={() => { setShowSidebar(false); navigation.navigate('AddressManagement'); }}>
+                <IconSymbol name="mappin.and.ellipse" size={24} color="#8B5CF6" />
+                <Text style={styles.sidebarItemText}>Saved Addresses</Text>
+              </TouchableOpacity>
               
               <View style={styles.sidebarDivider} />
               
               <TouchableOpacity 
                 style={styles.sidebarItem}
-                onPress={() => { setShowSidebar(false); /* Navigate to Help */ }}>
+                onPress={() => { setShowSidebar(false); navigation.navigate('HelpSupport'); }}>
                 <IconSymbol name="questionmark.circle" size={24} color="#8B5CF6" />
                 <Text style={styles.sidebarItemText}>Help & Support</Text>
               </TouchableOpacity>
@@ -1960,8 +1966,15 @@ export default function HomeScreen({ navigation }) {
                 <IconSymbol name="arrow.right.square" size={24} color="#FF1E6C" />
                 <Text style={[styles.sidebarItemText, { color: '#FF1E6C' }]}>Sign Out</Text>
               </TouchableOpacity>
+
+              <View style={styles.sidebarBottomPadding} />
             </ScrollView>
           </View>
+          <TouchableOpacity 
+            style={styles.sidebarBackdrop}
+            activeOpacity={1}
+            onPress={() => setShowSidebar(false)}
+          />
         </View>
       </Modal>
       
@@ -1972,13 +1985,19 @@ export default function HomeScreen({ navigation }) {
         end={{ x: 1, y: 1 }}
         style={styles.header}>
         <View style={styles.headerContent}>
-          <TouchableOpacity 
-            style={styles.profileBtn}
-            onPress={() => setShowSidebar(true)}>
-            <View style={styles.profileCircle}>
-              <IconSymbol name="person.fill" size={24} color="#C4A1FF" />
+          <View style={styles.profileSection}>
+            <TouchableOpacity 
+              style={styles.profileBtn}
+              onPress={() => setShowSidebar(true)}>
+              <View style={styles.profileCircle}>
+                <IconSymbol name="person.fill" size={24} color="#C4A1FF" />
+              </View>
+            </TouchableOpacity>
+            <View style={styles.welcomeTextContainer}>
+              <Text style={styles.welcomeText}>Welcome</Text>
+              <Text style={styles.userName}>{user?.name}</Text>
             </View>
-          </TouchableOpacity>
+          </View>
           <View style={styles.headerIcons}>
             <TouchableOpacity 
               style={styles.iconBtn}
@@ -2152,6 +2171,24 @@ const styles = StyleSheet.create({
   },
   profileBtn: {
     padding: 0,
+  },
+  profileSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  welcomeTextContainer: {
+    flexDirection: 'column',
+  },
+  welcomeText: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '400',
+  },
+  userName: {
+    fontSize: 15,
+    color: '#2D1B69',
+    fontWeight: '700',
   },
   profileCircle: {
     width: 44,
@@ -2445,10 +2482,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   sidebarContainer: {
-    width: width * 0.8,
+    width: width * 0.75,
     backgroundColor: '#fff',
     shadowColor: '#000',
-    shadowOffset: { width: -2, height: 0 },
+    shadowOffset: { width: 2, height: 0 },
     shadowOpacity: 0.25,
     shadowRadius: 10,
     elevation: 10,
@@ -2488,23 +2525,28 @@ const styles = StyleSheet.create({
   sidebarContent: {
     flex: 1,
   },
+  sidebarContentContainer: {
+    paddingBottom: 40,
+  },
+  sidebarBottomPadding: {
+    height: 80,
+  },
   sidebarItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: 18,
     paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    backgroundColor: '#fff',
   },
   sidebarItemText: {
     fontSize: 16,
     color: '#333',
     marginLeft: 16,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   sidebarDivider: {
-    height: 1,
-    backgroundColor: '#E0E0E0',
-    marginVertical: 8,
+    height: 8,
+    backgroundColor: '#F5F5F5',
+    marginVertical: 12,
   },
 });

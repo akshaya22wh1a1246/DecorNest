@@ -151,18 +151,17 @@ export default function LoginScreen({ navigation }) {
                 <View style={styles.dividerLine} />
               </View>
 
-              {/* Social Login */}
-              <View style={styles.socialContainer}>
-                <TouchableOpacity style={styles.socialButton} activeOpacity={0.7}>
-                  <IconSymbol name="g.circle.fill" size={24} color="#DB4437" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.socialButton} activeOpacity={0.7}>
-                  <IconSymbol name="f.circle.fill" size={24} color="#4267B2" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.socialButton} activeOpacity={0.7}>
-                  <IconSymbol name="apple.logo" size={24} color="#000000" />
-                </TouchableOpacity>
-              </View>
+              {/* Google Login */}
+              <TouchableOpacity
+                style={styles.googleButtonWrapper}
+                onPress={() => Alert.alert('Google Sign In', 'Google authentication will be implemented here')}
+                activeOpacity={0.8}
+              >
+                <View style={styles.googleButton}>
+                  <IconSymbol name="globe" size={24} color="#DB4437" />
+                  <ThemedText style={styles.googleButtonText}>Continue with Google</ThemedText>
+                </View>
+              </TouchableOpacity>
 
               {/* Footer */}
               <View style={styles.footer}>
@@ -316,21 +315,26 @@ const styles = StyleSheet.create({
     color: '#999',
     marginHorizontal: 16,
   },
-  socialContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16,
+  googleButtonWrapper: {
+    borderRadius: 12,
+    overflow: 'hidden',
     marginBottom: 32,
   },
-  socialButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#F5F3FF',
+  googleButton: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 14,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E6E0FF',
+    borderColor: '#E0E0E0',
+    borderRadius: 12,
+    gap: 12,
+  },
+  googleButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#333',
   },
   footer: {
     flexDirection: 'row',

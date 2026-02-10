@@ -46,7 +46,7 @@ export default function ProfileScreen() {
             </View>
             <ThemedText style={styles.guestTitle}>Welcome to Decor Nest!</ThemedText>
             <ThemedText style={styles.guestSubtitle}>
-              Login or create an account to explore amazing décor packages and start planning your dream event
+              Login or create an account to explore amazing decor packages and start planning your dream event
             </ThemedText>
 
             <View style={styles.guestButtonContainer}>
@@ -81,7 +81,7 @@ export default function ProfileScreen() {
             <View style={styles.guestFeatures}>
               <View style={styles.featureItem}>
                 <IconSymbol name="star.fill" size={20} color="#FFB800" />
-                <ThemedText style={styles.featureText}>Premium Décor Setups</ThemedText>
+                <ThemedText style={styles.featureText}>Premium Decor Setups</ThemedText>
               </View>
               <View style={styles.featureItem}>
                 <IconSymbol name="cube.fill" size={20} color="#8B5CF6" />
@@ -487,6 +487,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     marginBottom: 24,
+  },
+  userRoleBadge: {
+    marginTop: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: '#ECFEFF',
+    alignSelf: 'center',
   },
   statsContainer: {
     flexDirection: 'row',

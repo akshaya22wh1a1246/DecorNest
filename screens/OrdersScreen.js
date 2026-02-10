@@ -4,12 +4,15 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useApp } from '@/context/app-context';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
-import React from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
-export default function OrdersScreen() {
+import React from 'react';
+import { Alert, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+
+export default function OrdersScreen({ navigation }) {
   const { orders = [] } = useApp();
+
+  console.log('OrdersScreen - Total orders:', orders.length);
+  console.log('OrdersScreen - Orders data:', JSON.stringify(orders, null, 2));
 
   if (orders.length === 0) {
     return (
@@ -29,7 +32,7 @@ export default function OrdersScreen() {
           </ThemedText>
           <TouchableOpacity 
             style={styles.exploreButtonWrapper}
-            onPress={() => router.push('/(tabs)/explore')}
+            onPress={() => navigation.navigate('Home')}
             activeOpacity={0.8}
           >
             <LinearGradient
@@ -46,6 +49,52 @@ export default function OrdersScreen() {
       </ThemedView>
     );
   }
+
+  const handleContactSupport = (order) => {
+    const rawPhone = order?.bookingDetails?.phone || '';
+    const phoneDigits = (rawPhone || '').replace(/\D/g, '');
+    const hasValidPhone = phoneDigits.length >= 10;
+    const displayPhone = hasValidPhone ? phoneDigits : 'Not provided';
+
+    const message = encodeURIComponent(
+      `Hi, I need help with my order #${order.id.slice(0, 8)}. My registered phone is ${displayPhone}.`
+    );
+
+    Alert.alert(
+      'Contact Support',
+      `How would you like to contact using your number?\n\nOrder ID: #${order.id.slice(0, 8)}\nYour phone: ${displayPhone}`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Call',
+          onPress: () => {
+            if (!hasValidPhone) {
+              Alert.alert('Phone missing', 'No valid mobile number is saved with this order.');
+              return;
+            }
+            Linking.openURL(`tel:${phoneDigits}`).catch(() => {
+              Alert.alert('Error', 'Unable to start a phone call on this device.');
+            });
+          },
+        },
+        {
+          text: 'WhatsApp',
+          onPress: () => {
+            if (!hasValidPhone) {
+              Alert.alert('Phone missing', 'No valid mobile number is saved with this order.');
+              return;
+            }
+            Linking.openURL(`https://wa.me/${phoneDigits}?text=${message}`).catch(() => {
+              Alert.alert('Error', 'Unable to open WhatsApp on this device.');
+            });
+          },
+        },
+      ]
+    );
+  };
 
   const renderOrderStatus = (status) => {
     const statusConfig = {
@@ -102,14 +151,9 @@ export default function OrdersScreen() {
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {orders.map((order) => (
-          <TouchableOpacity 
+          <View 
             key={order.id}
             style={styles.orderCard}
-            onPress={() => router.push({
-              pathname: '/order-details',
-              params: { orderId: order.id }
-            })}
-            activeOpacity={0.7}
           >
             <View style={styles.orderHeader}>
               <View style={styles.orderHeaderLeft}>
@@ -153,6 +197,62 @@ export default function OrdersScreen() {
 
             <View style={styles.divider} />
 
+            {/* Order Tracking Timeline */}
+            <View style={styles.trackingContainer}>
+              <ThemedText style={styles.trackingTitle}>Order Status</ThemedText>
+              <View style={styles.timeline}>
+                <View style={styles.timelineItem}>
+                  <View style={[styles.timelineDot, order.status !== 'cancelled' && styles.timelineDotActive]}>
+                    <IconSymbol name="checkmark" size={12} color="#fff" />
+                  </View>
+                  <View style={styles.timelineContent}>
+                    <ThemedText style={styles.timelineLabel}>Order Placed</ThemedText>
+                    <ThemedText style={styles.timelineDate}>{order.date}</ThemedText>
+                  </View>
+                </View>
+                
+                <View style={[styles.timelineLine, 
+                  (order.status === 'confirmed' || order.status === 'completed') && styles.timelineLineActive]} />
+                
+                <View style={styles.timelineItem}>
+                  <View style={[styles.timelineDot, 
+                    (order.status === 'confirmed' || order.status === 'completed') && styles.timelineDotActive]}>
+                    {(order.status === 'confirmed' || order.status === 'completed') && (
+                      <IconSymbol name="checkmark" size={12} color="#fff" />
+                    )}
+                  </View>
+                  <View style={styles.timelineContent}>
+                    <ThemedText style={styles.timelineLabel}>Confirmed</ThemedText>
+                    <ThemedText style={styles.timelineDate}>
+                      {order.status === 'confirmed' || order.status === 'completed' ? 'In Progress' : 'Pending'}
+                    </ThemedText>
+                  </View>
+                </View>
+                
+                <View style={[styles.timelineLine, 
+                  order.status === 'completed' && styles.timelineLineActive]} />
+                
+                <View style={styles.timelineItem}>
+                  <View style={[styles.timelineDot, 
+                    order.status === 'completed' && styles.timelineDotActive]}>
+                    {order.status === 'completed' && (
+                      <IconSymbol name="checkmark" size={12} color="#fff" />
+                    )}
+                  </View>
+                  <View style={styles.timelineContent}>
+                    <ThemedText style={styles.timelineLabel}>
+                      {order.status === 'cancelled' ? 'Cancelled' : 'Delivered'}
+                    </ThemedText>
+                    <ThemedText style={styles.timelineDate}>
+                      {order.status === 'completed' ? 'Completed' : order.status === 'cancelled' ? 'Cancelled' : 'Upcoming'}
+                    </ThemedText>
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.divider} />
+
             <View style={styles.orderFooter}>
               <LinearGradient
                 colors={['#F5F3FF', '#FAF5FF']}
@@ -160,30 +260,52 @@ export default function OrdersScreen() {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
               >
-                <IconSymbol name="calendar.badge.checkmark" size={16} color="#8B5CF6" />
-                <ThemedText style={styles.eventText}>
-                  {order.bookingDetails.date} • {order.bookingDetails.venue}
-                </ThemedText>
+                <View style={styles.eventRow}>
+                  <IconSymbol name="calendar.badge.checkmark" size={16} color="#8B5CF6" />
+                  <ThemedText style={styles.eventText}>
+                    {order.bookingDetails.date}
+                  </ThemedText>
+                </View>
+                <View style={styles.eventRow}>
+                  <IconSymbol name="mappin.and.ellipse" size={16} color="#8B5CF6" />
+                  <ThemedText style={styles.eventText}>
+                    Deliver to: {order.bookingDetails.venue}
+                  </ThemedText>
+                </View>
+                {order.bookingDetails.phone ? (
+                  <View style={styles.eventRow}>
+                    <IconSymbol name="phone.fill" size={16} color="#8B5CF6" />
+                    <ThemedText style={styles.eventText}>
+                      Mobile: {order.bookingDetails.phone}
+                    </ThemedText>
+                  </View>
+                ) : null}
               </LinearGradient>
-              
+
               <View style={styles.totalContainer}>
                 <ThemedText style={styles.totalLabel}>Total Amount</ThemedText>
                 <ThemedText style={styles.totalAmount}>₹{order.totalAmount}</ThemedText>
               </View>
             </View>
 
-            <TouchableOpacity 
-              style={styles.viewDetailsButton} 
-              activeOpacity={0.7}
-              onPress={() => router.push({
-                pathname: '/order-details',
-                params: { orderId: order.id }
-              })}
-            >
-              <ThemedText style={styles.viewDetailsText}>View Details</ThemedText>
-              <IconSymbol name="chevron.right" size={16} color="#8B5CF6" />
-            </TouchableOpacity>
-          </TouchableOpacity>
+            {order.status !== 'cancelled' && order.status !== 'completed' && (
+              <TouchableOpacity 
+                style={styles.actionButton} 
+                activeOpacity={0.7}
+                onPress={() => handleContactSupport(order)}
+              >
+                <LinearGradient
+                  colors={['#8B5CF6', '#A78BFA']}
+                  style={styles.actionButtonGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <IconSymbol name="phone.fill" size={16} color="#fff" />
+                  <ThemedText style={styles.actionButtonText}>Contact Support</ThemedText>
+                </LinearGradient>
+              </TouchableOpacity>
+            )}
+          </View>
         ))}
         <View style={styles.bottomPadding} />
       </ScrollView>
@@ -380,10 +502,14 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   eventDetails: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'column',
     padding: 12,
     borderRadius: 8,
+    gap: 6,
+  },
+  eventRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
   eventText: {
@@ -405,6 +531,79 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: '#2D1B69',
+  },
+  
+  // Tracking Timeline
+  trackingContainer: {
+    paddingVertical: 4,
+  },
+  trackingTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#2D1B69',
+    marginBottom: 16,
+  },
+  timeline: {
+    paddingLeft: 4,
+  },
+  timelineItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  timelineDot: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#E0E0E0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  timelineDotActive: {
+    backgroundColor: '#8B5CF6',
+  },
+  timelineLine: {
+    width: 2,
+    height: 20,
+    backgroundColor: '#E0E0E0',
+    marginLeft: 11,
+    marginVertical: 2,
+  },
+  timelineLineActive: {
+    backgroundColor: '#8B5CF6',
+  },
+  timelineContent: {
+    flex: 1,
+    paddingBottom: 2,
+  },
+  timelineLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2D1B69',
+    marginBottom: 2,
+  },
+  timelineDate: {
+    fontSize: 12,
+    color: '#999',
+  },
+  
+  // Action Button
+  actionButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginTop: 8,
+  },
+  actionButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 14,
+    gap: 8,
+  },
+  actionButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#fff',
   },
   
   // View Details Button

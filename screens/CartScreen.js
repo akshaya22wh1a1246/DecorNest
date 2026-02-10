@@ -65,8 +65,8 @@ export default function CartScreen({ navigation }) {
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Proceed', onPress: () => {
-          // Navigate to checkout or payment screen
-          Alert.alert('Success', 'Checkout functionality will be implemented here!');
+          // Navigate to payment options screen
+          navigation.navigate('PaymentMethods', { total, items: cartProducts });
         }}
       ]
     );

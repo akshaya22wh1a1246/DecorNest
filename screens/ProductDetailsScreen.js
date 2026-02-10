@@ -8,6 +8,8 @@ import {
   Dimensions,
   FlatList,
   Alert,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useApp } from '@/context/app-context';
@@ -22,10 +24,60 @@ export const setAllProducts = (products) => {
 
 export default function ProductDetailsScreen({ route, navigation }) {
   const { product } = route.params;
-  const { addToCart, cartItems } = useApp();
+  const { addToCart, cartItems, user } = useApp();
   
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(product?.image);
+
+  const [isReviewModalVisible, setReviewModalVisible] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewText, setReviewText] = useState('');
+  const [reviewName, setReviewName] = useState(user?.name || '');
+
+  const [reviews, setReviews] = useState([
+    {
+      id: '1',
+      name: 'Priya Sharma',
+      date: '2 weeks ago',
+      rating: 5,
+      text:
+        'Absolutely stunning decorations! The team did an amazing job at our wedding. The quality and setup exceeded our expectations. Highly recommend!',
+    },
+    {
+      id: '2',
+      name: 'Rahul Kumar',
+      date: '1 month ago',
+      rating: 4.5,
+      text:
+        'Great value for money. The decorations looked beautiful and the service was excellent. Minor delay in setup but overall very satisfied.',
+    },
+    {
+      id: '3',
+      name: 'Aisha Verma',
+      date: '3 weeks ago',
+      rating: 4.8,
+      text:
+        'Beautiful décor and very professional team. They understood our theme perfectly and executed it wonderfully.',
+    },
+  ]);
+
+  const averageRating = reviews.length
+    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+    : product.rating || 4.5;
+
+  const ratingCount = reviews.length || product.reviews || 0;
+
+  const ratingDistribution = [5, 4, 3, 2, 1].map((star) =>
+    reviews.filter((r) => Math.round(r.rating) === star).length
+  );
+
+  const maxRatingCount = Math.max(...ratingDistribution, 1);
+
+  const getBarWidth = (count) => {
+    if (!count || !maxRatingCount) return '5%';
+    const percentage = (count / maxRatingCount) * 100;
+    return `${Math.max(5, percentage)}%`;
+  };
 
   // Get similar products from same category
   const similarProducts = allProducts
@@ -60,6 +112,32 @@ export default function ProductDetailsScreen({ route, navigation }) {
     if (quantity > 1) setQuantity(quantity - 1);
   };
 
+  const openReviewModal = () => {
+    setReviewRating(5);
+    setReviewText('');
+    setReviewName(user?.name || '');
+    setReviewModalVisible(true);
+  };
+
+  const handleSubmitReview = () => {
+    if (!reviewText.trim()) {
+      Alert.alert('Add a few words', 'Please write something about your experience.');
+      return;
+    }
+
+    const newReview = {
+      id: Date.now().toString(),
+      name: reviewName && reviewName.trim() ? reviewName.trim() : 'Guest User',
+      date: 'Just now',
+      rating: reviewRating,
+      text: reviewText.trim(),
+    };
+
+    setReviews([newReview, ...reviews]);
+    setReviewModalVisible(false);
+    Alert.alert('Thank you!', 'Your review has been added.');
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -72,7 +150,6 @@ export default function ProductDetailsScreen({ route, navigation }) {
             cachePolicy="memory-disk"
             transition={200}
           />
-          
           {/* Discount Badge */}
           {product.discount > 0 && (
             <View style={styles.discountBadgeTop}>
@@ -85,18 +162,16 @@ export default function ProductDetailsScreen({ route, navigation }) {
         <View style={styles.contentContainer}>
           {/* Brand/Organizer */}
           <Text style={styles.brandName}>{product.organizer || 'Decor Nest'}</Text>
-          
+
           {/* Title */}
           <Text style={styles.title}>{product.title}</Text>
-          
-          {/* Rating & Reviews */}
+
+          {/* Rating & Reviews (dynamic from local state) */}
           <View style={styles.ratingContainer}>
             <View style={styles.ratingBadge}>
-              <Text style={styles.ratingText}>{product.rating || 4.5} ⭐</Text>
+              <Text style={styles.ratingText}>{averageRating} ⭐</Text>
             </View>
-            <Text style={styles.reviewsText}>
-              {product.reviews || 0} ratings
-            </Text>
+            <Text style={styles.reviewsText}>{ratingCount} ratings</Text>
           </View>
 
           {/* Price Section */}
@@ -118,36 +193,13 @@ export default function ProductDetailsScreen({ route, navigation }) {
           <View style={styles.quantitySection}>
             <Text style={styles.sectionTitle}>Quantity</Text>
             <View style={styles.quantitySelector}>
-              <TouchableOpacity 
-                style={styles.quantityButton}
-                onPress={decrementQuantity}>
-                <Text style={styles.quantityButtonText}>−</Text>
+              <TouchableOpacity style={styles.quantityButton} onPress={decrementQuantity}>
+                <Text style={styles.quantityButtonText}>-</Text>
               </TouchableOpacity>
               <Text style={styles.quantityText}>{quantity}</Text>
-              <TouchableOpacity 
-                style={styles.quantityButton}
-                onPress={incrementQuantity}>
+              <TouchableOpacity style={styles.quantityButton} onPress={incrementQuantity}>
                 <Text style={styles.quantityButtonText}>+</Text>
               </TouchableOpacity>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          {/* Product Details */}
-          <View style={styles.detailsSection}>
-            <Text style={styles.sectionTitle}>Product Details</Text>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Category:</Text>
-              <Text style={styles.detailValue}>{product.category}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Organizer:</Text>
-              <Text style={styles.detailValue}>{product.organizer}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>In Stock:</Text>
-              <Text style={[styles.detailValue, styles.inStock]}>Available</Text>
             </View>
           </View>
 
@@ -159,6 +211,99 @@ export default function ProductDetailsScreen({ route, navigation }) {
             <Text style={styles.descriptionText}>
               {product.description || `Beautiful ${product.category} decoration setup perfect for your special occasion. Professional quality decorations with complete setup service available.`}
             </Text>
+          </View>
+
+          <View style={styles.divider} />
+
+          {/* Customer Reviews Section */}
+          <View style={styles.reviewsSection}>
+            <View style={styles.reviewsHeader}>
+              <Text style={styles.sectionTitle}>Customer Reviews</Text>
+              <TouchableOpacity 
+                style={styles.writeReviewButton}
+                onPress={openReviewModal}
+              >
+                <Text style={styles.writeReviewText}>Write Review</Text>
+              </TouchableOpacity>
+            </View>
+            
+            {/* Rating Summary */}
+            <View style={styles.ratingSummary}>
+              <View style={styles.ratingLeft}>
+                <Text style={styles.bigRating}>{averageRating}</Text>
+                <Text style={styles.ratingStars}>{'⭐'.repeat(Math.round(averageRating || 4.5))}</Text>
+                <Text style={styles.ratingCount}>{ratingCount} ratings</Text>
+              </View>
+              <View style={styles.ratingBars}>
+                <View style={styles.ratingBarRow}>
+                  <Text style={styles.ratingBarLabel}>5 ⭐</Text>
+                  <View style={styles.ratingBar}>
+                    <View style={[styles.ratingBarFill, { width: getBarWidth(ratingDistribution[0]) }]} />
+                  </View>
+                  <Text style={styles.ratingBarCount}>{ratingDistribution[0]}</Text>
+                </View>
+                <View style={styles.ratingBarRow}>
+                  <Text style={styles.ratingBarLabel}>4 ⭐</Text>
+                  <View style={styles.ratingBar}>
+                    <View style={[styles.ratingBarFill, { width: getBarWidth(ratingDistribution[1]) }]} />
+                  </View>
+                  <Text style={styles.ratingBarCount}>{ratingDistribution[1]}</Text>
+                </View>
+                <View style={styles.ratingBarRow}>
+                  <Text style={styles.ratingBarLabel}>3 ⭐</Text>
+                  <View style={styles.ratingBar}>
+                    <View style={[styles.ratingBarFill, { width: getBarWidth(ratingDistribution[2]) }]} />
+                  </View>
+                  <Text style={styles.ratingBarCount}>{ratingDistribution[2]}</Text>
+                </View>
+                <View style={styles.ratingBarRow}>
+                  <Text style={styles.ratingBarLabel}>2 ⭐</Text>
+                  <View style={styles.ratingBar}>
+                    <View style={[styles.ratingBarFill, { width: getBarWidth(ratingDistribution[3]) }]} />
+                  </View>
+                  <Text style={styles.ratingBarCount}>{ratingDistribution[3]}</Text>
+                </View>
+                <View style={styles.ratingBarRow}>
+                  <Text style={styles.ratingBarLabel}>1 ⭐</Text>
+                  <View style={styles.ratingBar}>
+                    <View style={[styles.ratingBarFill, { width: getBarWidth(ratingDistribution[4]) }]} />
+                  </View>
+                  <Text style={styles.ratingBarCount}>{ratingDistribution[4]}</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Reviews List */}
+            <View style={styles.reviewsList}>
+              {reviews.map((review) => {
+                const initials = review.name
+                  .split(' ')
+                  .map((n) => n.charAt(0))
+                  .join('')
+                  .toUpperCase()
+                  .slice(0, 2);
+
+                return (
+                  <View key={review.id} style={styles.reviewCard}>
+                    <View style={styles.reviewHeader}>
+                      <View style={styles.reviewAvatar}>
+                        <Text style={styles.reviewAvatarText}>{initials}</Text>
+                      </View>
+                      <View style={styles.reviewHeaderInfo}>
+                        <Text style={styles.reviewerName}>{review.name}</Text>
+                        <Text style={styles.reviewDate}>{review.date}</Text>
+                      </View>
+                      <View style={styles.reviewRatingBadge}>
+                        <Text style={styles.reviewRatingText}>
+                          {review.rating.toFixed(1)} ⭐
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={styles.reviewText}>{review.text}</Text>
+                  </View>
+                );
+              })}
+            </View>
           </View>
 
           <View style={styles.divider} />
@@ -210,6 +355,80 @@ export default function ProductDetailsScreen({ route, navigation }) {
           <Text style={styles.buyNowText}>BUY NOW</Text>
         </TouchableOpacity>
       </View>
+
+      <Modal
+        visible={isReviewModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setReviewModalVisible(false)}
+      >
+        <View style={styles.reviewModalOverlay}>
+          <View style={styles.reviewModalContent}>
+            <Text style={styles.reviewModalTitle}>Write a Review</Text>
+            <Text style={styles.reviewModalSubtitle}>
+              Share your experience with this décor package
+            </Text>
+
+            <Text style={styles.reviewModalLabel}>Your Name</Text>
+            <TextInput
+              style={styles.reviewModalInput}
+              placeholder="Enter your name"
+              placeholderTextColor="#9CA3AF"
+              value={reviewName}
+              onChangeText={setReviewName}
+            />
+
+            <Text style={styles.reviewModalLabel}>Rating</Text>
+            <View style={styles.modalRatingRow}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity
+                  key={star}
+                  onPress={() => setReviewRating(star)}
+                  style={styles.modalStarButton}
+                  activeOpacity={0.8}
+                >
+                  <Text
+                    style={
+                      star <= reviewRating
+                        ? styles.modalStarSelected
+                        : styles.modalStar
+                    }
+                  >
+                    ⭐
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={styles.reviewModalLabel}>Your Review</Text>
+            <TextInput
+              style={styles.reviewModalTextArea}
+              placeholder="Describe your experience, décor quality, and service..."
+              placeholderTextColor="#9CA3AF"
+              value={reviewText}
+              onChangeText={setReviewText}
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+            />
+
+            <View style={styles.reviewModalButtonsRow}>
+              <TouchableOpacity
+                style={[styles.reviewModalButton, styles.reviewModalCancelButton]}
+                onPress={() => setReviewModalVisible(false)}
+              >
+                <Text style={styles.reviewModalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.reviewModalButton, styles.reviewModalSubmitButton]}
+                onPress={handleSubmitReview}
+              >
+                <Text style={styles.reviewModalSubmitText}>Submit Review</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -368,6 +587,250 @@ const styles = StyleSheet.create({
     color: '#666',
     lineHeight: 22,
   },
+  
+  // Reviews Section
+  reviewsSection: {
+    marginBottom: 8,
+  },
+  reviewsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  writeReviewButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#1E88E5',
+    borderRadius: 6,
+  },
+  writeReviewText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  ratingSummary: {
+    flexDirection: 'row',
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+  },
+  ratingLeft: {
+    alignItems: 'center',
+    marginRight: 24,
+    paddingRight: 24,
+    borderRightWidth: 1,
+    borderRightColor: '#E0E0E0',
+  },
+  bigRating: {
+    fontSize: 48,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: 4,
+  },
+  ratingStars: {
+    fontSize: 20,
+    marginBottom: 6,
+  },
+  ratingCount: {
+    fontSize: 12,
+    color: '#666',
+  },
+  ratingBars: {
+    flex: 1,
+    justifyContent: 'space-around',
+  },
+  ratingBarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  ratingBarLabel: {
+    fontSize: 12,
+    color: '#666',
+    width: 40,
+  },
+  ratingBar: {
+    flex: 1,
+    height: 8,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginHorizontal: 8,
+  },
+  ratingBarFill: {
+    height: '100%',
+    backgroundColor: '#FFC107',
+  },
+  ratingBarCount: {
+    fontSize: 12,
+    color: '#666',
+    width: 30,
+    textAlign: 'right',
+  },
+  reviewsList: {
+    marginTop: 12,
+  },
+  reviewModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  reviewModalContent: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  reviewModalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  reviewModalSubtitle: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginTop: 4,
+    marginBottom: 16,
+  },
+  reviewModalLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#4B5563',
+    marginTop: 10,
+    marginBottom: 4,
+  },
+  reviewModalInput: {
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 14,
+    color: '#111827',
+    backgroundColor: '#F9FAFB',
+  },
+  modalRatingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+    gap: 4,
+  },
+  modalStarButton: {
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+  },
+  modalStar: {
+    fontSize: 22,
+    color: '#D1D5DB',
+  },
+  modalStarSelected: {
+    fontSize: 22,
+    color: '#F59E0B',
+  },
+  reviewModalTextArea: {
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#111827',
+    backgroundColor: '#F9FAFB',
+    marginTop: 4,
+    minHeight: 90,
+  },
+  reviewModalButtonsRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginTop: 16,
+    gap: 8,
+  },
+  reviewModalButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+  },
+  reviewModalCancelButton: {
+    backgroundColor: '#F3F4F6',
+  },
+  reviewModalSubmitButton: {
+    backgroundColor: '#8B5CF6',
+  },
+  reviewModalCancelText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  reviewModalSubmitText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  reviewCard: {
+    backgroundColor: '#FAFAFA',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  reviewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  reviewAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#1E88E5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  reviewAvatarText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  reviewHeaderInfo: {
+    flex: 1,
+  },
+  reviewerName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 2,
+  },
+  reviewDate: {
+    fontSize: 12,
+    color: '#999',
+  },
+  reviewRatingBadge: {
+    backgroundColor: '#FFF8E1',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  reviewRatingText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#F57C00',
+  },
+  reviewText: {
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 20,
+  },
+  
   similarSection: {
     marginTop: 8,
   },
